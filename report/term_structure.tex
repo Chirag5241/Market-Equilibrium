@@ -1,0 +1,193 @@
+% =====================================================================
+% Section: Application -- Endogenous Term Structure
+% Original text first (unchanged). Everything added in this revision is
+% below the "TO REVIEW" marker, so it can be checked and merged by hand.
+% Needs only amsmath and amssymb.
+% =====================================================================
+
+\section{Application: Endogenous Term Structure}
+
+\paragraph{Term structure.}
+The term structure describes how bond yields vary with maturity. For a zero-coupon bond promising \$1 at maturity $T$, its price $P(T)$ implies a continuously compounded yield
+\[
+y(T)=-\frac{\log P(T)}{T}.
+\]
+Our goal is to study how this curve emerges and adjusts through decentralized bilateral trading after a financial shock.
+
+\paragraph{Market design.}
+We introduce time, money, and $K$ zero-coupon bonds with maturities $T_1,\ldots,T_K$. Each bond promises \$1 at maturity, but its realized payoff may be uncertain due to default. Money serves as the numeraire and has unit marginal utility. Each agent holds money $m_i\geq 0$ and a bond portfolio $x_i\in\mathbb{R}_{\geq 0}^K$. Bilateral trades transfer money and arbitrary bundles of bonds:
+\[
+(m_i,x_i)\leftarrow(m_i+\Delta_m,x_i+\Delta),
+\qquad
+(m_j,x_j)\leftarrow(m_j-\Delta_m,x_j-\Delta).
+\]
+Trades remain subject to feasibility and mutual acceptance. No global bond prices or centralized exchange are assumed.
+
+\paragraph{Agent utility.}
+Let $\mu_k$ and $\sigma_k^2$ denote the mean and variance of bond $k$'s maturity payoff. We retain the original duration preference $v_{ik}$ and risk aversion $\lambda_i$. The utility becomes
+\[
+U_i(m_i,x_i)
+=m_i+\sum_k x_{ik}\left[D_i(T_k)\mu_k+\alpha_i v_{ik}\right]
+-\lambda_i\sum_k x_{ik}^2D_i(T_k)^2\sigma_k^2.
+\]
+We consider two discounting assumptions:
+\[
+D_i(T)=
+\begin{cases}
+e^{-y_{\mathrm{Treasury}}(T)T}, & \text{Treasury benchmark},\\
+e^{-\rho_i T}, & \text{Individual discounting}.
+\end{cases}
+\]
+The first uses the observed Treasury term structure as an exogenous discounting benchmark, without assuming corporate bond prices. The second uses heterogeneous individual discount rates $\rho_i$.
+
+\paragraph{Endogenous prices.}
+Although bilateral trades exchange bundles rather than individual bonds, each agent's marginal valuation in units of money is
+\[
+p_{ik}(t)=\frac{\partial U_i}{\partial x_{ik}}
+=D_i(T_k)\mu_k+\alpha_i v_{ik}
+-2\lambda_iD_i(T_k)^2\sigma_k^2x_{ik}(t).
+\]
+At an interior pairwise equilibrium, marginal valuations must agree across agents, yielding an implicit price $P_k^*$. Thus, the equilibrium yield curve is recovered as
+\[
+y^*(T_k)=-\frac{\log P_k^*}{T_k}.
+\]
+With the Treasury benchmark, the implied credit spread is
+\[
+s^*(T_k)=-\frac{1}{T_k}\log\frac{P_k^*}{D(T_k)}.
+\]
+During adjustment, marginal valuations may differ across agents. Their dispersion provides an additional measure of incomplete price discovery.
+
+\paragraph{Experiments.}
+We initialize heterogeneous duration preferences, risk aversion, and portfolios, and allow bilateral bargaining to approach a stable allocation. We then introduce a maturity-dependent risk shock, changing bond payoff uncertainty or expected losses. Agents renegotiate their portfolios under the existing bargaining regimes. We measure the evolution of the implied yield curve, dispersion in marginal valuations, and convergence time.
+
+% =====================================================================
+% ======================  TO REVIEW (added)  ==========================
+% Revision 2 (2026-11-19): rewritten to follow the interim deck
+% (corporate_bond_with_notation.pdf) and its handoff note. It replaces
+% revision 1, which used the earlier money market (individual
+% discounting, alpha_i, uncalibrated supplies) and is superseded.
+% Derivations are ours. Numbers marked "website engine" come from
+% website/engine.js, which reproduces the deck's seed-0 reference values
+% exactly (X, P*, W*-W(0) = 0.690857, F for rounds 1-8) when given the
+% same draws; its own seeds use a different generator from numpy.
+% =====================================================================
+
+\bigskip
+\noindent\rule{\linewidth}{0.6pt}
+\subsection*{To review: incomplete information and utility metrics, aligned with the interim deck}
+\noindent\textit{Added in this revision; merge into the section above once checked. The section above is unchanged.}
+\smallskip
+
+\paragraph{Where the section above differs from the deck.}
+Suggested edits, for whoever merges:
+\begin{itemize}
+\item \emph{Cash.} The deck allows $m_i\in\mathbb{R}$ (unrestricted borrowing), not $m_i\ge 0$. The bargaining results below need this.
+\item \emph{Payment sign.} The deck writes the trade as $x_i'=x_i+\Delta$, $x_j'=x_j-\Delta$, $m_i'=m_i-z$, $m_j'=m_j+z$, so $z>0$ means $i$ pays $j$. The section above uses $+\Delta_m$ for $i$.
+\item \emph{Discounting.} The deck uses only the Treasury discount factor $D_k=e^{-y_kT_k}$, a common preference weight $\alpha$, and a default model: $\mathrm{PD}_k=1-e^{-hT_k}$, $\mu_k=1-L\,\mathrm{PD}_k$, $\sigma_k^2=L^2\mathrm{PD}_k(1-\mathrm{PD}_k)$. Individual discounting $e^{-\rho_iT}$ and investor-specific $\alpha_i$ are not in the deck.
+\item \emph{Short notation.} $U_i=m_i+V_i(x_i)$, $V_i(x_i)=\sum_k(c_{ik}x_{ik}-b_{ik}x_{ik}^2)$, with $c_{ik}=D_k\mu_k+\alpha v_{ik}$ and $b_{ik}=\lambda_iD_k^2\sigma_k^2$. The marginal value is $a_{ik}=c_{ik}-2b_{ik}x_{ik}$.
+\item \emph{Terminology.} Prefer ``terminal allocation $x^*$'' and ``terminal marginal value $P^*_k$'' to ``pairwise equilibrium'' or ``Walrasian''. The model has no central exchange.
+\item \emph{Observed prices.} The deck's term structure uses executed prices: the volume-weighted per-bond price $\hat P_k(t)$ and the execution-implied spread $\hat s_k(t)=-\frac1{T_k}\log(\hat P_k(t)/D_k)$. It does not use marginal valuations, which are not observable.
+\item \emph{Experiments.} The deck calibrates $x^0$ to observed prices $P^0_k=D_ke^{-s_kT_k}$ (OAS, March 24--28, 2025). It then applies a risk-aversion shock ($\lambda_i\times3$ or $\div3$ for 10\%, 50\% or 90\% of investors) or a default-hazard shock ($h\times1.25$ or $\times0.8$), and measures $W(M)$, $F(M)$ and $M_\varepsilon$.
+\end{itemize}
+
+\paragraph{Bargaining and the terminal state (deck slides 3--4, for reference).}
+With $A_i(\Delta)=V_i(x_i+\Delta)-V_i(x_i)$ and $A_j(\Delta)=V_j(x_j-\Delta)-V_j(x_j)$, symmetric Nash bargaining over $(\Delta,z)$ gives
+\[
+z^*=\tfrac12(A_i-A_j),\qquad g_i=g_j=\tfrac12(A_i+A_j),\qquad
+\Delta_k^*=\operatorname{clip}\!\left(\frac{a_{ik}-a_{jk}}{2(b_{ik}+b_{jk})},-x_{ik},x_{jk}\right).
+\]
+Trading stops only when, for every bond $k$, all holders share a marginal value $P_k^*$ and non-holders value it at most $P_k^*$. These are the optimality conditions of the strictly concave problem $\max\sum_iV_i(x_i)$ subject to $\sum_ix_{ik}=X_k$, so $x^*$ is unique (see also Feldman 1973). Final cash, and so each investor's final utility, depends on the order of meetings.
+
+\paragraph{Information structure.}
+Following the deck, $\theta_i=(d_i^*,\tau_i,\lambda_i)$ is private. Holdings $x$ and the bond data $(T,D,\mu,\sigma^2,h,L,\alpha)$ are public. We additionally take the prior ranges of $\theta$ as public, group membership as private, and executed prices as private unless a public signal is studied. The \emph{estimated-utility solver} replaces $(a_j,b_j)$ by estimates $(\hat a_j,\hat b_j)$, proposes the formula trade $\hat\Delta$ with $\hat z=\frac12(A_i(\hat\Delta)-\hat A_j(\hat\Delta))$, and executes only if both true gains are positive. In the website engine it holds a particle belief over $\theta_j$ that is updated after every accept or reject.
+
+\paragraph{Proposition 1 (public holdings reveal pre-shock types).}
+At the calibrated state, every investor with $x^0_{jk}>0$ has $a_{jk}=P^0_k$, so
+\[
+\alpha v_{jk}=P^0_k-D_k\mu_k+2\lambda_jD_k^2\sigma_k^2x^0_{jk},\qquad k=1,\dots,6.
+\]
+Here $v_{jk}=\exp(-(T_k-d_j^*)^2/2\tau_j^2)$, so these are six equations in the three unknowns $(d_j^*,\tau_j,\lambda_j)$, and the pre-shock type is generically identified from public data. \emph{Check (website engine, 450 investors, 5 seeds):} a nonlinear least-squares fit recovers $\lambda_j$ to within 0.1\% for 449 investors, and all three parameters (0.1\%, 0.01 years) for 445. The exceptions are long-group investors with $d^*_j$ beyond the 20-year bond and a narrow tolerance, whose $v_{jk}$ is numerically zero for most bonds.
+
+\emph{Consequences.} After a default-hazard shock, which is public, nothing private remains, and the estimated-utility solver can be exact. After a risk-aversion shock, the only private information is who was hit and by how much. The deck's ``private-information'' experiments therefore test inference about the \emph{shock}, not about preferences, unless holdings or $P^0$ are hidden or types are shocked privately. This should be decided, and stated, before slide-9 Experiment 1 is run.
+
+\paragraph{Proposition 2 (who bears an estimation error; acceptance margin).}
+The proposer's true gain is $A_i-\hat z=\frac12\hat S>0$, where $\hat S=A_i(\hat\Delta)+\hat A_j(\hat\Delta)$: it uses its own true values and sets the payment. The counterpart's true gain is
+\[
+g_j=A_j(\hat\Delta)+\hat z=\tfrac12\hat S+\bigl(A_j(\hat\Delta)-\hat A_j(\hat\Delta)\bigr),
+\]
+so a proposal fails only when the proposer overestimates the counterpart's bond gain by more than half the predicted surplus. For a single interior bond with known $b_{jk}$ and error $\hat a_{jk}=a_{jk}+\delta$, $g_j$ has the sign of $(a_{ik}-\hat a_{jk})(\frac14(a_{ik}-\hat a_{jk})+\delta)$. The trade is therefore accepted for either sign of $\delta$ exactly when $|a_{ik}-\hat a_{jk}|>4|\delta|$.
+
+\paragraph{Proposition 3 (efficiency vs.\ distribution, exact).}
+The joint surplus $S(\Delta)=\sum_k[(a_{ik}-a_{jk})\Delta_k-(b_{ik}+b_{jk})\Delta_k^2]$ is an exact quadratic. In the interior,
+\[
+S(\Delta^*)-S(\hat\Delta)=\sum_k(b_{ik}+b_{jk})(\hat\Delta_k-\Delta_k^*)^2,
+\]
+and this is an upper bound when holdings bind, since clipping is a projection. An estimate that moves the trade by $O(\|e\|)$ therefore loses $O(\|e\|^2)$ of surplus, while the counterpart's share moves away from $\frac12$ by $A_j-\hat A_j=O(\|e\|)$. \emph{Check (website engine, default market):} perturbing $\hat a_j$ by $e$ for every pair at the post-shock state gives log--log slopes of 2.00 for the surplus loss and 1.00 for the share shift.
+
+\paragraph{Proposition 4 (fixed errors stop the market short of $x^*$).}
+By Proposition 2, a pair whose valuation gap is within about $4|\delta|$ can be blocked for good. Without learning, the market therefore stalls before $x^*$. Holders' marginal values stay dispersed by $O(\delta)$, and the welfare shortfall $1-F$ is $O(\delta^2)$. A valuation gap $\Delta p$ corresponds to a spread gap of about $\Delta p/(P_kT_k)$, so the residual spread dispersion is largest at the short end. Table~\ref{tab:fixederr} confirms all three.
+
+\begin{table}[h]
+\centering\small
+\begin{tabular}{rcccc}
+\hline
+Error $\delta$ (price units) & $F$ after 30 rounds & Spread dispersion (bp) & 2-year (bp) & 20-year (bp) \\
+\hline
+0                  & 100.000\% & 0.00 & 0.00 & 0.00 \\
+$1\times10^{-4}$   & 99.999\%  & 0.15 & 0.25 & 0.10 \\
+$2\times10^{-4}$   & 99.997\%  & 0.27 & 0.46 & 0.18 \\
+$4\times10^{-4}$   & 99.989\%  & 0.52 & 0.88 & 0.35 \\
+$8\times10^{-4}$   & 99.957\%  & 1.04 & 1.77 & 0.69 \\
+$1.6\times10^{-3}$ & 99.841\%  & 2.01 & 3.48 & 1.37 \\
+\hline
+\end{tabular}
+\caption{Fixed estimation errors with no learning (website engine). Baseline market, $N=90$, risk-aversion shock ($\times3$, 10\% of investors), mean over 6 seeds. The proposer's estimate is $\hat a_{jk}=a_{jk}+\delta\varepsilon_{ijk}$ with $\varepsilon_{ijk}\sim N(0,1)$ fixed per proposer, counterpart and bond, and $b_{jk}$ known. Dispersion is the cross-holder standard deviation of the spread implied by each holder's marginal value, averaged over bonds. Dispersion doubles with $\delta$, while $1-F$ roughly quadruples.}
+\label{tab:fixederr}
+\end{table}
+
+\paragraph{Learning, and the role of public data.}
+Table~\ref{tab:estsolver} runs the estimated-utility solver with particle beliefs on the same market. With a diffuse prior it stalls at $F\approx92$--$96\%$ unless it gets many proposals per meeting. Starting from the pre-shock type recovered from holdings (Proposition 1), or adding a public signal from last round's executed prices (slide-9 Experiment 2), lets the market finish. Round-1 executed prices overshoot (deck slide 6), yet even this noisy signal is enough here.
+
+\begin{table}[h]
+\centering\small
+\begin{tabular}{lccc}
+\hline
+Information available to the proposer & $m=1$ & $m=3$ & $m=8$ \\
+\hline
+Diffuse prior                                & 91.7\% (0/10) & 95.9\% (0/10) & 99.5\% (10/10) \\
+Prior from public holdings (Prop.~1)         & 96.9\% (0/10) & 99.99\% (10/10) & 100.0\% (10/10) \\
+Diffuse prior + last round's executed prices & 99.98\% (10/10) & 99.99\% (10/10) & 99.99\% (10/10) \\
+\hline
+\end{tabular}
+\caption{Estimated-utility solver (website engine): median $F$ after 30 rounds over 10 seeds, with the number of seeds reaching $F\ge 0.99$ in parentheses. $m$ is the number of proposals per meeting. Same market and shock as Table~\ref{tab:fixederr}. The true-utility solver reaches $F=100\%$ in every seed. Median rejection rates are 96--97\% with the diffuse prior, 81--92\% with the holdings prior, and 52--88\% with the price signal.}
+\label{tab:estsolver}
+\end{table}
+
+\paragraph{Judging an LLM negotiator that does not converge.}
+Compare it at the same meeting and proposal budget against two computable benchmarks. The true-utility solver gives an upper bound on $F(M)$. The estimated-utility solver fed the same observations gives an information-matched baseline, and an LLM is doing well if it beats that baseline. Report the gap in $F(M)$, accepted and rejected proposals, messages, and inference error. A counting argument gives a floor on learning: pinning a three-parameter type to resolution $\delta$ from yes/no answers takes on the order of $3\log_2(1/\delta)$ answers.
+
+\paragraph{Utility metrics.}
+Cash is the numeraire with $\partial U_i/\partial m_i=1$, so all gains are in one unit and need no further normalization. Alongside the deck's $W(M)$, $F(M)$, $M_\varepsilon$ and $\hat s_k(t)$, we propose:
+\begin{itemize}
+\item \emph{Gains} $g_i=\Delta m_i+V_i(x_i)-V_i(x_i^0)$ under post-shock utilities, in bp of pre-shock portfolio value $\sum_kP^0_kx^0_{ik}$, as in the deck's entry-timing table. Summaries: minimum gain, Gini coefficient, and the share earned by shocked investors. Since $x^*$ is unique, every distributional difference between methods is in cash. The transferable-utility $N$-investor Nash bargaining solution from the post-shock state, $x^*$ with equal gains $(W^*-W(0))/N$, is the reference point for the Gini coefficient.
+\item \emph{Per-meeting quality}: surplus efficiency $S(\Delta)/S(\Delta^*)\in(0,1]$, which equals 1 for the true-utility solver, and proposer share $g_{\text{prop}}/S$, which is exactly $\frac12$ under symmetric Nash bargaining with cash. ``Equal bilateral gains in normalized units'' is the claim we can defend; final utilities are not equal.
+\item \emph{Fairness of holdings} (descriptive): EF, where $i$ weakly prefers its own $(m_i,x_i)$ to every $(m_j,x_j)$; EF1, which allows removing one lot $X_k/(3N)$ of a bond from either position; PROP, $U_i\ge U_i(M/N,X/N)$; and PROP1. We use the goods-and-chores versions because $V_i$ is not monotone. Whether EFX or PROP1 says anything structural about this market is open. Envy is naturally measured in cash, $\max_j[U_i(m_j,x_j)-U_i(m_i,x_i)]^+$.
+\end{itemize}
+On the default market (website engine, 16 rounds), the true-utility solver gives shocked investors 39.8\% of all gains, against 54.3\% under the diffuse-prior estimated-utility solver. Stylised LLM negotiators that ask for 65\% of the surplus end with a proposer share of 65--72\%. The single-seed figures in this paragraph are illustrative, not results.
+
+\paragraph{Planned experiments (to merge into ``Experiments'' above).}
+\begin{enumerate}
+\item \emph{Information structure first.} Run slide-9 Experiment 1 under two structures: holdings public (types recoverable, Proposition 1) and holdings or $P^0$ hidden. Otherwise the comparison mostly measures inference about who was shocked.
+\item \emph{Public price signal} (slide-9 Experiment 2): no signal vs.\ last round's executed prices vs.\ indicative quotes. Measure $F(M)$, $M_\varepsilon$ and spread dispersion by maturity. Note the round-1 overshoot.
+\item \emph{Fixed-error floor:} sweep $\delta$ and confirm that dispersion is linear and $1-F$ quadratic in $\delta$ on the deck's seeds.
+\item \emph{LLM negotiators:} a full-information check that LLMs reach $x^*$, then private-information runs scored against the two benchmarks above at an equal budget.
+\end{enumerate}
+
+\paragraph{References to add.}
+A.~Feldman, Bilateral trading processes, pairwise optimality, and Pareto optimality, \emph{Rev.\ Econ.\ Stud.} 40(4), 1973.
+R.~Myerson and M.~Satterthwaite, Efficient mechanisms for bilateral trading, \emph{J.\ Econ.\ Theory} 29(2), 1983.
+D.~Duffie, N.~G\^arleanu and L.~Pedersen, Over-the-counter markets, \emph{Econometrica} 73(6), 2005.
+H.~Aziz, I.~Caragiannis, A.~Igarashi and T.~Walsh, Fair allocation of indivisible goods and chores, \emph{IJCAI} 2019.
+
+\noindent\rule{\linewidth}{0.6pt}
+% =====================  END TO REVIEW  ===============================

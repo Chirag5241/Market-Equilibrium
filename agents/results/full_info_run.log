@@ -1,0 +1,61 @@
+Market: N 90, seed 7, riskUp (10% hit), 16 rounds. Deployments: gpt-6-luna, gpt-6-luna-2. Cap $10 (already spent $0.0072).
+[minimal] round 1: F = 32.07% (true-utility 74.05%), 8 trades, 5 blocked, spent $0.2456
+[objective] round 1: F = 74.05% (true-utility 74.05%), 9 trades, 6 blocked, spent $0.4051
+[minimal] round 2: F = 58.67% (true-utility 91.77%), 16 trades, 5 blocked, spent $0.4664
+[minimal] round 3: F = 77.38% (true-utility 95.82%), 25 trades, 4 blocked, spent $0.6764
+[minimal] round 4: F = 84.26% (true-utility 97.75%), 31 trades, 6 blocked, spent $0.8576
+[objective] round 2: F = 91.77% (true-utility 91.77%), 18 trades, 5 blocked, spent $0.9721
+[minimal] round 5: F = 87.74% (true-utility 98.74%), 35 trades, 4 blocked, spent $1.0587
+node:internal/deps/undici/undici:12637
+    Error.captureStackTrace(err, this);
+          ^
+
+TypeError: fetch failed
+    at node:internal/deps/undici/undici:12637:11
+    at async chat (file:///Users/chiragrastogi/Dev/UIUC%20Courses/CS580/CS580_project/agents/llm_full_info.mjs:53:17)
+    at async Agent.act (file:///Users/chiragrastogi/Dev/UIUC%20Courses/CS580/CS580_project/agents/llm_full_info.mjs:147:17)
+    at async meeting (file:///Users/chiragrastogi/Dev/UIUC%20Courses/CS580/CS580_project/agents/llm_full_info.mjs:170:15)
+    at async file:///Users/chiragrastogi/Dev/UIUC%20Courses/CS580/CS580_project/agents/llm_full_info.mjs:192:227
+    at async Promise.all (index 13)
+    at async pool (file:///Users/chiragrastogi/Dev/UIUC%20Courses/CS580/CS580_project/agents/llm_full_info.mjs:192:88)
+    at async runCase (file:///Users/chiragrastogi/Dev/UIUC%20Courses/CS580/CS580_project/agents/llm_full_info.mjs:207:18)
+    at async Promise.all (index 0)
+    at async file:///Users/chiragrastogi/Dev/UIUC%20Courses/CS580/CS580_project/agents/llm_full_info.mjs:223:17 {
+  cause: Error: read ECONNRESET
+      at TLSWrap.onStreamRead (node:internal/stream_base_commons:217:20) {
+    errno: -54,
+    code: 'ECONNRESET',
+    syscall: 'read'
+  }
+}
+
+Node.js v18.20.8
+Market: N 90, seed 7, riskUp (10% hit), 16 rounds. Deployments: gpt-6-luna, gpt-6-luna-2. Cap $10 (already spent $1.1539).
+[minimal] resuming after round 5
+[objective] resuming after round 2
+[minimal] round 6: F = 92.34% (true-utility 99.55%), 44 trades, 0 blocked, spent $1.4499
+[objective] round 3: F = 95.53% (true-utility 95.82%), 28 trades, 4 blocked, spent $1.6282
+[minimal] round 7: F = 94.13% (true-utility 99.76%), 44 trades, 1 blocked, spent $1.6337
+[minimal] round 8: F = 95.64% (true-utility 99.87%), 44 trades, 1 blocked, spent $1.9542
+[objective] round 4: F = 97.40% (true-utility 97.75%), 37 trades, 3 blocked, spent $2.0732
+[minimal] round 9: F = 96.47% (true-utility 99.95%), 42 trades, 2 blocked, spent $2.2083
+[objective] round 5: F = 98.51% (true-utility 98.74%), 39 trades, 4 blocked, spent $2.4362
+[minimal] round 10: F = 97.16% (true-utility 99.97%), 42 trades, 3 blocked, spent $2.4417
+[minimal] round 11: F = 97.94% (true-utility 99.99%), 43 trades, 0 blocked, spent $2.7270
+[objective] round 6: F = 99.42% (true-utility 99.55%), 43 trades, 1 blocked, spent $2.7901
+[minimal] round 12: F = 98.39% (true-utility 99.99%), 45 trades, 0 blocked, spent $3.0145
+[objective] round 7: F = 99.68% (true-utility 99.76%), 42 trades, 3 blocked, spent $3.1649
+[minimal] round 13: F = 98.79% (true-utility 100.00%), 44 trades, 0 blocked, spent $3.2793
+[objective] round 8: F = 99.81% (true-utility 99.87%), 35 trades, 4 blocked, spent $3.5805
+[minimal] round 14: F = 99.02% (true-utility 100.00%), 41 trades, 2 blocked, spent $3.6520
+[minimal] round 15: F = 99.27% (true-utility 100.00%), 41 trades, 4 blocked, spent $3.9209
+[objective] round 9: F = 99.88% (true-utility 99.95%), 37 trades, 8 blocked, spent $3.9380
+[minimal] round 16: F = 99.43% (true-utility 100.00%), 41 trades, 3 blocked, spent $4.1296
+[objective] round 10: F = 99.94% (true-utility 99.97%), 44 trades, 0 blocked, spent $4.2625
+[objective] round 11: F = 99.97% (true-utility 99.99%), 34 trades, 8 blocked, spent $4.4622
+[objective] round 12: F = 99.99% (true-utility 99.99%), 34 trades, 8 blocked, spent $4.6752
+[objective] round 13: F = 99.99% (true-utility 100.00%), 32 trades, 10 blocked, spent $4.9177
+[objective] round 14: F = 99.99% (true-utility 100.00%), 29 trades, 13 blocked, spent $5.1798
+[objective] round 15: F = 100.00% (true-utility 100.00%), 28 trades, 9 blocked, spent $5.4719
+[objective] round 16: F = 100.00% (true-utility 100.00%), 30 trades, 11 blocked, spent $5.7261
+Done. Calls 2581, input tokens 18516769, output tokens 4609891 (reasoning 4297994). Spent this run $5.7261 at $0.11/$0.55 per 1M.

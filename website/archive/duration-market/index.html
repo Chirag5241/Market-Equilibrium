@@ -1,0 +1,1697 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Equilibrium After Shocks</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+/* Layout: a research project site. Sticky section nav; a narrative column (~68ch) for the argument,
+   widening to full-bleed instrument panels where the reader runs the model. Same tokens and type
+   as the earlier "Equilibrium After Shocks" simulator, so the two read as one project. */
+:root {
+  --bg: #f2f4f7;
+  --panel: #ffffff;
+  --sunk: #f7f8fa;
+  --ink: #131a26;
+  --ink-2: #485266;
+  --muted: #636c7f;
+  --line: #dce1e9;
+  --grid: #e9edf2;
+  --accent: #2f5bd3;
+  --accent-ink: #ffffff;
+  --rA: #2f5bd3;
+  --rB: #8756a6;
+  --rC: #2b7a4b;
+  --rD: #b4442e;
+  --shock: #c2571a;
+  --t0: #0f8f86;
+  --t1: #c98400;
+  --t2: #c9467f;
+  --t3: #5d6a80;
+  --neg: #2f6fd0;
+  --pos: #cc5a2e;
+  --good: #1d7f3c;
+  --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --r: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1016; --panel: #151a23; --sunk: #11151c; --ink: #e9edf4; --ink-2: #b2bbcb; --muted: #8590a4;
+    --line: #283041; --grid: #1f2633; --accent: #6f93f0; --accent-ink: #0d1016;
+    --rA: #6f93f0; --rB: #b48ad4; --rC: #4fb07a; --rD: #e07a62; --shock: #f08a4b;
+    --t0: #2ab5ab; --t1: #e0a52a; --t2: #e06fa0; --t3: #93a0b7;
+    --neg: #5d95ec; --pos: #e8814f; --good: #4cc274;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d1016; --panel: #151a23; --sunk: #11151c; --ink: #e9edf4; --ink-2: #b2bbcb; --muted: #8590a4;
+  --line: #283041; --grid: #1f2633; --accent: #6f93f0; --accent-ink: #0d1016;
+  --rA: #6f93f0; --rB: #b48ad4; --rC: #4fb07a; --rD: #e07a62; --shock: #f08a4b;
+  --t0: #2ab5ab; --t1: #e0a52a; --t2: #e06fa0; --t3: #93a0b7;
+  --neg: #5d95ec; --pos: #e8814f; --good: #4cc274;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 64px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.6; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--panel); }
+.gut { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1200px; margin: 0 auto; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(30px, 4.6vw, 54px); font-weight: 700; line-height: 1.04; letter-spacing: -0.02em; }
+h2 { font-size: clamp(22px, 2.4vw, 28px); font-weight: 700; line-height: 1.15; }
+h3 { font-size: 16px; font-weight: 700; }
+p { margin: 0; }
+.prose { display: grid; gap: 14px; max-width: 68ch; color: var(--ink-2); }
+.prose b, .prose strong { color: var(--ink); font-weight: 600; }
+.mono, .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.eyebrow { font-size: 11.5px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.muted { color: var(--muted); }
+a { color: var(--accent); }
+button, select, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+math { font-size: 1.08em; }
+
+/* nav */
+nav.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 9; background: color-mix(in srgb, var(--panel) 92%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+nav.top .wrap { display: flex; align-items: center; gap: 18px; height: 52px; }
+nav.top .brand { font-family: var(--display); font-weight: 700; font-size: 15px; white-space: nowrap; color: var(--ink); text-decoration: none; }
+nav.top .links { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; min-width: 0; flex: 1; justify-content: flex-end; }
+nav.top .links::-webkit-scrollbar { display: none; }
+nav.top .links a { color: var(--ink-2); text-decoration: none; font-size: 13px; padding: 6px 10px; border-radius: 6px; white-space: nowrap; }
+nav.top .links a:hover { background: var(--sunk); color: var(--ink); }
+nav.top .links a.on { color: var(--ink); background: var(--sunk); box-shadow: inset 0 -2px 0 var(--accent); }
+@media (max-width: 720px) { nav.top .brand { display: none; } nav.top .links { justify-content: flex-start; } }
+
+/* sections */
+section.band { padding-block: 56px; border-bottom: 1px solid var(--line); }
+section.band.alt { background: var(--panel); }
+.sec-head { display: grid; gap: 10px; margin-bottom: 26px; max-width: 72ch; }
+.sec-head .eyebrow { display: flex; gap: 10px; align-items: center; }
+.sec-head .eyebrow .sn { font-family: var(--mono); color: var(--ink-2); letter-spacing: 0; }
+.sec-head p { color: var(--ink-2); }
+
+/* hero */
+header.hero { padding-block: 48px 40px; border-bottom: 1px solid var(--line); }
+.hero-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 40px; align-items: start; }
+@media (max-width: 980px) { .hero-grid { grid-template-columns: minmax(0, 1fr); } }
+.byline { color: var(--ink-2); font-size: 14px; margin-top: 14px; display: flex; flex-wrap: wrap; gap: 4px 16px; }
+.byline span b { color: var(--ink); font-weight: 600; }
+.lede { color: var(--ink-2); margin-top: 18px; max-width: 60ch; }
+.question { margin-top: 24px; padding: 16px 18px; border: 1px solid var(--line); border-left: 3px solid var(--ink); background: var(--panel); border-radius: 0 var(--r) var(--r) 0; }
+.question .eyebrow { margin-bottom: 4px; }
+.question p { font-family: var(--display); font-size: clamp(17px, 1.8vw, 20px); line-height: 1.3; font-weight: 500; color: var(--ink); text-wrap: pretty; }
+figure { margin: 0; }
+figcaption { font-size: 12.5px; color: var(--muted); margin-top: 10px; line-height: 1.5; }
+figcaption b { color: var(--ink-2); font-weight: 600; }
+
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; min-width: 0; }
+section.alt .card { background: var(--bg); }
+section.alt .card .card, section.alt .sunk { background: var(--panel); }
+
+.pipeline { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 14px; }
+.stage { position: relative; min-width: 0; border: 1px solid var(--line); background: var(--sunk); border-radius: 8px; padding: 7px 9px; font-size: 12px; color: var(--ink-2); line-height: 1.35; }
+.stage + .stage::before { content: "→"; position: absolute; left: -12px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 12px; }
+.stage b { display: block; color: var(--ink); font-weight: 600; font-size: 12.5px; }
+.stage.shock b { color: var(--shock); }
+@media (max-width: 560px) { .pipeline { grid-template-columns: repeat(2, minmax(0, 1fr)); } .stage:nth-child(3)::before { content: none; } }
+
+/* charts */
+.chart { position: relative; width: 100%; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chart text { font-family: var(--mono); font-size: 10.5px; fill: var(--muted); }
+.chart .lab { font-family: var(--body); font-size: 11.5px; fill: var(--ink-2); font-weight: 500; }
+.tip { position: absolute; pointer-events: none; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.14); min-width: 170px; z-index: 5; }
+.tip .t { font-family: var(--mono); color: var(--muted); font-size: 11px; margin-bottom: 4px; }
+.tip .r { display: flex; gap: 10px; align-items: center; justify-content: space-between; }
+.tip .r span:first-child { display: flex; gap: 6px; align-items: center; color: var(--ink-2); }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--ink-2); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.swatch { width: 14px; height: 3px; border-radius: 2px; display: inline-block; flex: none; }
+.swatch.dash { background: repeating-linear-gradient(90deg, currentColor 0 4px, transparent 4px 7px) !important; height: 2px; }
+.dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex: none; }
+
+/* 2x2 regimes */
+.grid22 { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+.grid22 .hd { font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; padding: 4px 6px; align-self: end; }
+.grid22 .rh { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; text-align: center; padding: 6px 2px; }
+.cell { border: 1px solid var(--line); border-radius: var(--r); padding: 14px; background: var(--panel); display: grid; gap: 6px; align-content: start; position: relative; overflow: hidden; }
+.cell::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--c); }
+.cell .ltr { font-family: var(--display); font-size: 28px; font-weight: 700; color: var(--c); line-height: 1; }
+.cell h3 { font-size: 15px; }
+.cell p { font-size: 13.5px; color: var(--ink-2); }
+@media (max-width: 640px) { .grid22 { grid-template-columns: minmax(0, 1fr); } .grid22 .hd, .grid22 .rh, .grid22 .sp { display: none; } }
+.compare { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 16px; }
+.compare div { border-top: 2px solid var(--line); padding-top: 10px; font-size: 13.5px; color: var(--ink-2); }
+.compare b { display: block; font-family: var(--mono); font-weight: 500; color: var(--ink); font-size: 13px; margin-bottom: 2px; }
+
+.two-col { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 36px; align-items: start; }
+@media (max-width: 980px) { .two-col { grid-template-columns: minmax(0, 1fr); gap: 24px; } }
+.eq { background: var(--sunk); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; overflow-x: auto; color: var(--ink); }
+section.alt .eq { background: var(--bg); }
+.eq math { display: block math; }
+.eq-label { font-size: 11.5px; color: var(--muted); margin-bottom: 2px; letter-spacing: 0.04em; }
+.callout { border-left: 3px solid var(--shock); padding: 8px 12px; background: var(--sunk); font-size: 13.5px; color: var(--ink-2); border-radius: 0 6px 6px 0; }
+
+/* controls */
+.field { display: grid; gap: 4px; }
+.field label, .lbl { font-size: 12.5px; color: var(--ink-2); display: flex; justify-content: space-between; gap: 8px; }
+.field label .num { color: var(--ink); }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+select, input[type=number] { background: var(--sunk); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; width: 100%; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.row > * { min-width: 0; }
+.btn { border: 1px solid var(--line); background: var(--panel); border-radius: 7px; padding: 7px 12px; cursor: pointer; font-weight: 500; font-size: 13px; }
+.btn:hover { border-color: var(--ink-2); }
+.btn.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.btn.primary:hover { opacity: 0.9; }
+.btn:disabled { opacity: 0.45; cursor: default; }
+.btn.small { padding: 4px 9px; font-size: 12px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; flex-wrap: wrap; background: var(--panel); }
+.seg button { border: 0; background: transparent; padding: 6px 10px; cursor: pointer; font-size: 12.5px; color: var(--ink-2); }
+.seg button[aria-pressed=true] { background: var(--ink); color: var(--bg); }
+.reg-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.reg-toggle label { display: flex; gap: 7px; align-items: center; border: 1px solid var(--line); border-radius: 7px; padding: 6px 8px; font-size: 12.5px; cursor: pointer; background: var(--panel); }
+.reg-toggle input { accent-color: var(--ink); }
+details.more summary { cursor: pointer; font-size: 12.5px; color: var(--ink-2); padding: 4px 0; }
+details.more[open] summary { margin-bottom: 8px; }
+.note { font-size: 12.5px; color: var(--muted); }
+.stack { display: grid; gap: 12px; min-width: 0; }
+.stack > *, .two-col > *, .explorer > * { min-width: 0; }
+.clock { font-family: var(--mono); font-size: 13px; color: var(--ink-2); }
+.clock b { color: var(--ink); font-weight: 500; font-size: 15px; }
+.status-line { font-size: 12.5px; color: var(--ink-2); min-height: 18px; }
+.kv { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px 16px; }
+.kv div span { display: block; font-size: 11.5px; color: var(--muted); }
+.kv div b { font-family: var(--mono); font-weight: 500; font-size: 15px; }
+
+/* explorer layouts */
+.explorer { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 20px; }
+@media (max-width: 860px) { .explorer { grid-template-columns: minmax(0, 1fr); } }
+.explorer .ctl { display: grid; gap: 12px; align-content: start; }
+.pair-charts { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+@media (max-width: 700px) { .pair-charts { grid-template-columns: minmax(0, 1fr); } }
+.chart-title { font-size: 12.5px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+.chart-sub { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+
+/* simulator */
+.sim { display: grid; grid-template-columns: 290px minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 1000px) { .sim { grid-template-columns: minmax(0, 1fr); } }
+aside.rail { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 64px); display: grid; gap: 12px; max-height: calc(100vh - 76px); overflow: auto; padding-right: 2px; }
+@media (max-width: 1000px) { aside.rail { position: static; max-height: none; } }
+.rail .card { display: grid; gap: 10px; }
+.rail h3 { font-size: 14px; }
+.sim-main { display: grid; gap: 16px; min-width: 0; }
+.panel-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 8px; }
+.panel-head h3 { font-size: 16px; }
+.panel-head p { color: var(--ink-2); max-width: 70ch; font-size: 13px; margin-top: 2px; }
+.split { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px; }
+@media (max-width: 1150px) { .split { grid-template-columns: minmax(0, 1fr); } }
+
+.tbl-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+th, td { text-align: right; padding: 7px 8px; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+th { font-weight: 600; color: var(--muted); font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; }
+th:first-child, td:first-child { text-align: left; }
+td.num { font-family: var(--mono); }
+tr.focus td { background: var(--sunk); }
+tbody.click tr { cursor: pointer; }
+.pill { display: inline-block; padding: 1px 7px; border-radius: 99px; font-size: 11px; font-weight: 600; border: 1px solid currentColor; }
+.pill.ok { color: var(--good); }
+.pill.wait { color: var(--muted); }
+.heat { overflow-x: auto; }
+.heat svg text { font-family: var(--mono); font-size: 10px; fill: var(--muted); }
+.progress { height: 4px; background: var(--grid); border-radius: 3px; overflow: hidden; }
+.progress > div { height: 100%; background: var(--ink); width: 0; transition: width 0.2s; }
+@media (prefers-reduced-motion: reduce) { .progress > div { transition: none; } }
+
+/* negotiation lab */
+.lab-grid { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 20px; }
+@media (max-width: 900px) { .lab-grid { grid-template-columns: minmax(0, 1fr); } }
+.transcript { display: grid; gap: 10px; max-height: 520px; overflow: auto; padding: 10px; background: var(--sunk); border-radius: 8px; border: 1px solid var(--line); min-height: 180px; align-content: start; }
+.bubble { max-width: 86%; border: 1px solid var(--line); background: var(--panel); border-radius: 10px; padding: 9px 12px; font-size: 13.5px; color: var(--ink); }
+.bubble.right { justify-self: end; }
+.bubble .who { font-size: 11.5px; color: var(--muted); margin-bottom: 3px; display: flex; gap: 6px; align-items: center; }
+.bubble .offer { margin-top: 6px; font-family: var(--mono); font-size: 12px; color: var(--ink-2); background: var(--sunk); border-radius: 6px; padding: 5px 8px; }
+.bubble .tools { margin-top: 6px; font-size: 11.5px; color: var(--muted); }
+.transcript .empty { color: var(--muted); font-size: 13px; padding: 28px 16px; text-align: center; align-self: center; }
+.result { border: 1px solid var(--line); border-radius: 8px; padding: 14px; display: grid; gap: 10px; }
+.result .kv b { font-size: 13.5px; word-break: break-word; }
+
+/* term structure */
+.ts-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 16px; }
+@media (max-width: 1000px) { .ts-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* goals */
+.goals { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.goal { border: 1px solid var(--line); border-radius: var(--r); padding: 16px; background: var(--panel); display: grid; gap: 8px; align-content: start; }
+.goal .n { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.goal p { font-size: 13.5px; color: var(--ink-2); }
+.goal .here { font-size: 12.5px; color: var(--ink-2); border-top: 1px dashed var(--line); padding-top: 8px; }
+.goal .here a { font-weight: 500; }
+table.tbl-text th, table.tbl-text td { white-space: normal; text-align: left; vertical-align: top; line-height: 1.45; }
+table.tbl-text td { font-size: 13px; color: var(--ink-2); min-width: 120px; }
+table.tbl-text td:first-child { min-width: 0; color: var(--ink); }
+ol.refs { padding-left: 22px; margin: 0; display: grid; gap: 6px; font-size: 13px; color: var(--ink-2); max-width: 90ch; }
+ol.refs i { color: var(--ink); }
+footer { padding-block: 28px 48px; font-size: 12.5px; color: var(--muted); }
+</style>
+
+<nav class="top gut" aria-label="Sections">
+  <div class="wrap">
+    <a class="brand" href="#top">Equilibrium After Shocks</a>
+    <div class="links" id="navLinks">
+      <a href="#regimes">Regimes</a>
+      <a href="#model">Model</a>
+      <a href="#solver">Solver</a>
+      <a href="#theory">Theory</a>
+      <a href="#metrics">Metrics</a>
+      <a href="#simulator">Simulator</a>
+      <a href="#lab">LLM lab</a>
+      <a href="#term-structure">Term structure</a>
+      <a href="#goals">Goals</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero gut" id="top">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow">CS 580 · Fall 2026 · Project proposal</div>
+      <h1 style="margin-top:10px">Decentralized Equilibrium Discovery After Shocks</h1>
+      <div class="byline"><span><b>Chirag Rastogi</b></span><span><b>Sejun Park</b></span></div>
+      <p class="lede">Equilibrium models say where a market should end up. They do not say how a decentralized market with private preferences gets there. We study that adjustment in a peer-to-peer market with no central exchange and no public price. A shock changes some agents' needs, the old allocation stops being stable, and the agents have to find a new one through bilateral trades that both sides accept.</p>
+      <div class="question">
+        <div class="eyebrow">Central question</div>
+        <p>How do communication and preference inference affect the speed of reaching Pareto efficiency after a shock, and the distribution of gains from trade?</p>
+      </div>
+    </div>
+    <figure class="card">
+      <div class="pipeline" aria-label="How the market adjusts">
+        <div class="stage shock"><b>Shock</b>needs change: Δθ<sub>i</sub></div>
+        <div class="stage"><b>x<sup>old</sup> unstable</b>pairs could gain again</div>
+        <div class="stage"><b>Random matching</b>infer → propose → accept / reject</div>
+        <div class="stage"><b>Pairwise stable</b>E<sub>pair</sub> ≤ ε</div>
+      </div>
+      <div class="legend" id="heroLegend"></div>
+      <div class="chart" id="heroChart" style="margin-top:4px"><div class="note" style="padding:60px 0;text-align:center">Running the market…</div></div>
+      <figcaption id="heroCap"><b>Figure 1, computed in your browser.</b> Pairwise residual E<sub>pair</sub>(t) after the shock for the four regimes, on a log scale. 24 agents trade six instruments; insurers' preferred duration moves out by 2.5 years. Dotted ticks mark T<sub>ε</sub>, the first round with E<sub>pair</sub> ≤ ε.</figcaption>
+    </figure>
+  </div>
+</header>
+
+<main>
+<!-- ================= REGIMES ================= -->
+<section class="band gut" id="regimes" aria-labelledby="regTitle">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow"><span class="sn">01</span>Design</div>
+      <h2 id="regTitle">Who computes the trade, and what they know</h2>
+      <p>We cross two choices. The trade is computed either by a solver or through LLM dialogue, and agents either see both utility functions or only their own. Holdings are public in every cell; only utility functions can be private. In all four cells a trade executes only if it is feasible and strictly improves both agents' true utilities. Acceptance is myopic for now; strategic concealment and rejection are extensions.</p>
+    </div>
+    <div class="grid22" role="table" aria-label="The four regimes">
+      <div class="sp"></div>
+      <div class="hd">Full information</div>
+      <div class="hd">Private information</div>
+      <div class="rh">Solver</div>
+      <div class="cell" style="--c:var(--rA)"><span class="ltr">A</span><h3>Solver, full information</h3><p>Bilateral Nash bargaining on both agents' true utility functions. This is the full-information baseline.</p></div>
+      <div class="cell" style="--c:var(--rB)"><span class="ltr">B</span><h3>Solver, private information</h3><p>The proposer uses its own true utility and an estimate Û<sub>j</sub> of the counterpart's, from a revealed-preference estimator or from an LLM that converses and then outputs Û<sub>j</sub>. The solver maximizes the product of predicted gains.</p></div>
+      <div class="rh">LLM dialogue</div>
+      <div class="cell" style="--c:var(--rC)"><span class="ltr">C</span><h3>LLM dialogue, full information</h3><p>Agents negotiate in language with access to both true utility functions.</p></div>
+      <div class="cell" style="--c:var(--rD)"><span class="ltr">D</span><h3>LLM dialogue, private information</h3><p>Each agent knows only its own utility function and uses dialogue to infer the counterpart's preferences and negotiate a trade.</p></div>
+    </div>
+    <div class="compare">
+      <div><b>A vs. C</b>Solver against LLM negotiation when everything is known.</div>
+      <div><b>A vs. B · C vs. D</b>What hiding the counterpart's preferences costs each kind of negotiator.</div>
+      <div><b>Role of the LLM</b>It models the disclosure, inference and negotiation layer. LLM results are used to form conjectures, not as the theoretical core.</div>
+    </div>
+
+    <div class="two-col" style="margin-top:40px">
+      <div class="prose">
+        <h3 style="color:var(--ink)">Target and metric</h3>
+        <p>Bilateral Nash bargaining is path dependent, so we do not assume a unique global target allocation. Instead, at each market state x(t) we compute the full-information Nash-bargaining trade Δ*<sub>ij</sub>(x(t)) for every pair i ≠ j, set to zero when no mutually beneficial trade exists.</p>
+        <p>The pairwise residual error is the average amount of reallocation that would still happen if every pair bargained optimally from the current state. It reaches zero exactly when the allocation is <b>pairwise stable</b>. That does not imply global Pareto optimality, since profitable trading cycles among three or more agents can remain (Feldman 1973).</p>
+      </div>
+      <div class="stack">
+        <div>
+          <div class="eq-label">Pairwise residual error</div>
+          <div class="eq"><math display="block"><msub><mi>E</mi><mtext>pair</mtext></msub><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo>=</mo><mfrac><mn>2</mn><mrow><mi>N</mi><mo stretchy="false">(</mo><mi>N</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></mfrac><munder><mo>∑</mo><mrow><mi>i</mi><mo>&lt;</mo><mi>j</mi></mrow></munder><msub><mrow><mo fence="true">‖</mo><msubsup><mi>Δ</mi><mrow><mi>i</mi><mi>j</mi></mrow><mo>*</mo></msubsup><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo stretchy="false">)</mo><mo fence="true">‖</mo></mrow><mn>2</mn></msub></math></div>
+        </div>
+        <div>
+          <div class="eq-label">Convergence time</div>
+          <div class="eq"><math display="block"><msub><mi>T</mi><mi>ε</mi></msub><mo>=</mo><mo movablelimits="false">min</mo><mo stretchy="false">{</mo><mi>t</mi><mo>:</mo><msub><mi>E</mi><mtext>pair</mtext></msub><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo>≤</mo><mi>ε</mi><mo stretchy="false">}</mo></math></div>
+        </div>
+        <p class="note">Each round, agents are paired by a uniformly random perfect matching, so any pair can meet.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= MODEL ================= -->
+<section class="band alt gut" id="model" aria-labelledby="modelTitle">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow"><span class="sn">02</span>Market design · Agent preferences</div>
+      <h2 id="modelTitle">Instruments that differ by duration, agents that differ by habitat</h2>
+      <p>N agents hold portfolios x<sub>i</sub> ∈ ℝ<sup>K</sup><sub>≥0</sub> of K divisible instruments. There is no exchange, order book or common price, and total supply of each instrument is fixed. Beliefs about returns are common, so agents trade to share risk, not on private information.</p>
+    </div>
+    <div class="two-col">
+      <div class="prose">
+        <p>Instrument k has a <b>duration</b> d<sub>k</sub>, its exposure along the maturity and interest-rate-sensitivity dimension, and an <b>idiosyncratic payoff variance</b> σ<sup>2</sup><sub>k</sub>, a separate risk such as issuer default. Idiosyncratic risks are independent across instruments, so portfolio risk depends on diversification rather than on a full covariance model.</p>
+        <p>Agent i has a preferred duration d*<sub>i</sub>, a tolerance τ<sub>i</sub> and a risk aversion λ<sub>i</sub>. It values instruments near its preferred duration most, and value falls off smoothly with distance. The quadratic risk term creates the diversification incentive: without it an agent would pile into whichever instrument it values most.</p>
+        <p>The simulator draws agents from four clienteles: banks at the short end, bond funds and insurers in the middle, pension funds at the long end. For the first experiments every instrument shares one variance σ<sup>2</sup>, so instruments differ only in duration.</p>
+      </div>
+      <div class="stack">
+        <div><div class="eq-label">Duration value</div><div class="eq"><math display="block"><msub><mi>v</mi><mrow><mi>i</mi><mi>k</mi></mrow></msub><mo>=</mo><mi>exp</mi><mrow><mo>(</mo><mo>−</mo><mfrac><msup><mrow><mo stretchy="false">(</mo><msub><mi>d</mi><mi>k</mi></msub><mo>−</mo><msubsup><mi>d</mi><mi>i</mi><mo>*</mo></msubsup><mo stretchy="false">)</mo></mrow><mn>2</mn></msup><mrow><mn>2</mn><msubsup><mi>τ</mi><mi>i</mi><mn>2</mn></msubsup></mrow></mfrac><mo>)</mo></mrow></math></div></div>
+        <div><div class="eq-label">Utility</div><div class="eq"><math display="block"><msub><mi>U</mi><mi>i</mi></msub><mo stretchy="false">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>=</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mi>K</mi></munderover><msub><mi>x</mi><mrow><mi>i</mi><mi>k</mi></mrow></msub><msub><mi>v</mi><mrow><mi>i</mi><mi>k</mi></mrow></msub><mo>−</mo><msub><mi>λ</mi><mi>i</mi></msub><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mi>K</mi></munderover><msubsup><mi>x</mi><mrow><mi>i</mi><mi>k</mi></mrow><mn>2</mn></msubsup><msubsup><mi>σ</mi><mi>k</mi><mn>2</mn></msubsup></math></div></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:28px" aria-labelledby="prefTitle">
+      <div class="panel-head"><div><h3 id="prefTitle">Preference explorer</h3><p>Pick a clientele or move the sliders. The ideal holding is what this agent would choose if it could take any amount of each instrument: x<sub>k</sub> = v<sub>k</sub> / (2λσ<sup>2</sup>).</p></div></div>
+      <div class="explorer">
+        <div class="ctl">
+          <div class="field"><span class="lbl">Clientele</span><div class="seg" role="group" aria-label="Clientele" id="prefType"></div></div>
+          <div class="field"><label for="pfD">Preferred duration d* <span class="num" id="pfDo"></span></label><input type="range" id="pfD" min="0.25" max="25" step="0.25" value="8"></div>
+          <div class="field"><label for="pfT">Tolerance τ <span class="num" id="pfTo"></span></label><input type="range" id="pfT" min="0.5" max="10" step="0.25" value="3.5"></div>
+          <div class="field"><label for="pfL">Risk aversion λ <span class="num" id="pfLo"></span></label><input type="range" id="pfL" min="0.2" max="3" step="0.05" value="1"></div>
+          <div class="field"><label for="pfS">Variance σ² <span class="num" id="pfSo"></span></label><input type="range" id="pfS" min="0.01" max="0.2" step="0.005" value="0.04"></div>
+          <p class="note" id="pfNote"></p>
+        </div>
+        <div class="pair-charts">
+          <div><div class="chart-title">Duration value v(d)</div><div class="chart-sub">Dots are the eight instruments, durations 0.5 to 20 years.</div><div class="chart" id="pfCurve"></div></div>
+          <div><div class="chart-title">Ideal holding by instrument</div><div class="chart-sub">Risk spreads the portfolio across neighbours.</div><div class="chart" id="pfBars"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SOLVER ================= -->
+<section class="band gut" id="solver" aria-labelledby="solverTitle">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow"><span class="sn">03</span>Bilateral Nash bargaining · Optimal solver</div>
+      <h2 id="solverTitle">One meeting, solved exactly in O(K log 1/ε)</h2>
+      <p>When i and j meet, a trade is a transfer vector Δ ∈ ℝ<sup>K</sup>: i receives Δ and j gives it up. Feasibility requires x<sub>i</sub> + Δ ≥ 0 and x<sub>j</sub> − Δ ≥ 0. Under full information, Nash bargaining picks the trade that maximizes the product of the two gains.</p>
+    </div>
+    <div class="two-col">
+      <div class="stack">
+        <div><div class="eq-label">Nash bargain</div><div class="eq"><math display="block"><msubsup><mi>Δ</mi><mrow><mi>i</mi><mi>j</mi></mrow><mo>*</mo></msubsup><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>∈</mo><munder><mrow><mi>arg</mi><mo>⁡</mo><mi>max</mi></mrow><mi>Δ</mi></munder><mspace width="0.2em"/><msub><mi>g</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>Δ</mi><mo stretchy="false">)</mo><mspace width="0.1em"/><msub><mi>g</mi><mi>j</mi></msub><mo stretchy="false">(</mo><mi>Δ</mi><mo stretchy="false">)</mo><mspace width="1em"/><mtext>s.t.&#160;</mtext><msub><mi>g</mi><mi>i</mi></msub><mo>,</mo><msub><mi>g</mi><mi>j</mi></msub><mo>≥</mo><mn>0</mn></math></div></div>
+        <div><div class="eq-label">Marginal utility and gains</div><div class="eq"><math display="block"><mtable columnalign="left"><mtr><mtd><msub><mi>a</mi><mrow><mi>ℓ</mi><mi>k</mi></mrow></msub><mo>=</mo><msub><mi>v</mi><mrow><mi>ℓ</mi><mi>k</mi></mrow></msub><mo>−</mo><mn>2</mn><msub><mi>λ</mi><mi>ℓ</mi></msub><msubsup><mi>σ</mi><mi>k</mi><mn>2</mn></msubsup><msub><mi>x</mi><mrow><mi>ℓ</mi><mi>k</mi></mrow></msub></mtd></mtr><mtr><mtd><msub><mi>g</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>Δ</mi><mo stretchy="false">)</mo><mo>=</mo><msub><mo>∑</mo><mi>k</mi></msub><mo stretchy="false">(</mo><msub><mi>a</mi><mrow><mi>i</mi><mi>k</mi></mrow></msub><msub><mi>Δ</mi><mi>k</mi></msub><mo>−</mo><msub><mi>λ</mi><mi>i</mi></msub><msubsup><mi>σ</mi><mi>k</mi><mn>2</mn></msubsup><msubsup><mi>Δ</mi><mi>k</mi><mn>2</mn></msubsup><mo stretchy="false">)</mo></mtd></mtr><mtr><mtd><msub><mi>g</mi><mi>j</mi></msub><mo stretchy="false">(</mo><mi>Δ</mi><mo stretchy="false">)</mo><mo>=</mo><msub><mo>∑</mo><mi>k</mi></msub><mo stretchy="false">(</mo><mo>−</mo><msub><mi>a</mi><mrow><mi>j</mi><mi>k</mi></mrow></msub><msub><mi>Δ</mi><mi>k</mi></msub><mo>−</mo><msub><mi>λ</mi><mi>j</mi></msub><msubsup><mi>σ</mi><mi>k</mi><mn>2</mn></msubsup><msubsup><mi>Δ</mi><mi>k</mi><mn>2</mn></msubsup><mo stretchy="false">)</mo></mtd></mtr></mtable></math></div></div>
+      </div>
+      <div class="stack">
+        <div><div class="eq-label">Weighted problem, closed form per instrument</div><div class="eq"><math display="block"><msub><mi>Δ</mi><mi>k</mi></msub><mo stretchy="false">(</mo><mi>r</mi><mo stretchy="false">)</mo><mo>=</mo><mi>clip</mi><mrow><mo>(</mo><mfrac><mrow><msub><mi>a</mi><mrow><mi>i</mi><mi>k</mi></mrow></msub><mo>−</mo><mi>r</mi><msub><mi>a</mi><mrow><mi>j</mi><mi>k</mi></mrow></msub></mrow><mrow><mn>2</mn><msubsup><mi>σ</mi><mi>k</mi><mn>2</mn></msubsup><mo stretchy="false">(</mo><msub><mi>λ</mi><mi>i</mi></msub><mo>+</mo><mi>r</mi><msub><mi>λ</mi><mi>j</mi></msub><mo stretchy="false">)</mo></mrow></mfrac><mo>,</mo><mo>−</mo><msub><mi>x</mi><mrow><mi>i</mi><mi>k</mi></mrow></msub><mo>,</mo><msub><mi>x</mi><mrow><mi>j</mi><mi>k</mi></mrow></msub><mo>)</mo></mrow></math></div></div>
+        <div><div class="eq-label">Bisection target</div><div class="eq"><math display="block"><mi>F</mi><mo stretchy="false">(</mo><mi>r</mi><mo stretchy="false">)</mo><mo>=</mo><msub><mi>g</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>Δ</mi><mo stretchy="false">(</mo><mi>r</mi><mo stretchy="false">)</mo><mo stretchy="false">)</mo><mo>−</mo><mi>r</mi><mspace width="0.1em"/><msub><mi>g</mi><mi>j</mi></msub><mo stretchy="false">(</mo><mi>Δ</mi><mo stretchy="false">(</mo><mi>r</mi><mo stretchy="false">)</mo><mo stretchy="false">)</mo><mo>=</mo><mn>0</mn></math></div></div>
+        <p class="note">As r grows, g<sub>i</sub> cannot rise and g<sub>j</sub> cannot fall. Δ = 0 is feasible, so the weighted objective is nonnegative and F changes sign exactly once, at the positive-gain solution. Each evaluation costs O(K). If no strictly mutually beneficial trade exists, the solver returns Δ* = 0.</p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:28px" aria-labelledby="pairTitle">
+      <div class="panel-head"><div><h3 id="pairTitle">Solve a meeting</h3><p id="pairSub">Pick two agents from the simulator's market, at the state it is in right now.</p></div></div>
+      <div class="explorer">
+        <div class="ctl">
+          <div class="field"><label for="pairI">Agent i (receives Δ)</label><select id="pairI"></select></div>
+          <div class="field"><label for="pairJ">Agent j (gives Δ)</label><select id="pairJ"></select></div>
+          <button class="btn small" id="pairBest" type="button">Pick the pair with the most to gain</button>
+          <div class="kv" id="pairKv"></div>
+          <p class="note" id="pairNote"></p>
+        </div>
+        <div class="stack">
+          <div class="pair-charts">
+            <div><div class="chart-title">Bargaining frontier</div><div class="chart-sub">Gains (g<sub>i</sub>, g<sub>j</sub>) traced by Δ(r). The dashed curve is the Nash product's level set.</div><div class="chart" id="frontierChart"></div></div>
+            <div><div class="chart-title">Bisection on F(r) = g<sub>i</sub> − r g<sub>j</sub></div><div class="chart-sub"><span style="color:var(--pos)">g<sub>i</sub>(Δ(r))</span> falls and <span style="color:var(--neg)">r g<sub>j</sub>(Δ(r))</span> rises; they cross at r*. Dots are the last bisection iterates.</div><div class="chart" id="fChart"></div></div>
+          </div>
+          <div><div class="chart-title">The trade Δ*</div><div class="chart-sub">Above zero: i receives that instrument from j. Below zero: i gives it to j.</div><div class="chart" id="deltaChart"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= THEORY: LIMITED INFORMATION ================= -->
+<section class="band alt gut" id="theory" aria-labelledby="thTitle">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow"><span class="sn">04</span>Theory · Limited-information Nash bargaining</div>
+      <h2 id="thTitle">Bargaining when the counterpart's utility is private</h2>
+      <p>In cells B and D the proposer knows its own type and everyone's holdings, but not the counterpart's type θ<sub>j</sub> = (v<sub>j</sub>, λ<sub>j</sub>). It proposes the Nash bargain it would compute if its belief θ̂<sub>j</sub> were true, and the counterpart accepts only if its true gain is positive. This section states what that setup implies, and which parts we have checked numerically.</p>
+    </div>
+
+    <div class="two-col">
+      <div class="prose">
+        <p><b>Setup (cell B).</b> A meeting allows up to m proposals. The proposer runs the solver from section 03 with θ̂<sub>j</sub> in place of θ<sub>j</sub>, proposes the result Δ̂, and the counterpart answers yes or no. Acceptance is myopic and truthful: j accepts exactly when g<sub>j</sub>(Δ̂; θ<sub>j</sub>) &gt; 0. Every answer updates the belief. Cell D replaces the yes/no updates with a noisy disclosure in dialogue, but the acceptance rule is the same.</p>
+        <p><b>What an answer reveals.</b> The counterpart's gain is linear in its type. So each yes or no tells the proposer which side of a hyperplane θ<sub>j</sub> lies on. The types that agree with every answer so far form a convex cone, the version space. θ<sub>j</sub> is fixed after the shock, so a constraint learned at one state stays valid at every later state, even though x<sub>j</sub> keeps changing. The version space can only shrink.</p>
+        <p><b>Scale is never learned, and it doesn't need to be.</b> Multiplying θ<sub>j</sub> by c &gt; 0 multiplies g<sub>j</sub> by c and flips no answer, so yes/no data can identify θ<sub>j</sub> only up to scale. The Nash bargain is unchanged by that rescaling: argmax g<sub>i</sub>·cg<sub>j</sub> = argmax g<sub>i</sub>g<sub>j</sub>. The answers therefore carry exactly the information the bargain needs: a direction in ℝ<sup>K+1</sup>. A counting argument gives a lower bound. There are about (1/δ)<sup>K</sup> directions distinguishable at angular resolution δ, and each answer is one bit, so any proposer needs about K log<sub>2</sub>(1/δ) answers in the worst case. Goal 2 asks for a matching upper bound when proposals are restricted to predicted Nash trades rather than arbitrary cuts.</p>
+      </div>
+      <div class="stack">
+        <div><div class="eq-label">Proposal under a belief, and the acceptance rule</div><div class="eq"><math display="block"><mtable columnalign="left"><mtr><mtd><mover><mi>Δ</mi><mo>^</mo></mover><mo>∈</mo><munder><mrow><mi>arg</mi><mo>⁡</mo><mi>max</mi></mrow><mi>Δ</mi></munder><mspace width="0.2em"/><msub><mi>g</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>Δ</mi><mo stretchy="false">)</mo><mspace width="0.1em"/><msub><mi>g</mi><mi>j</mi></msub><mo stretchy="false">(</mo><mi>Δ</mi><mo>;</mo><msub><mover><mi>θ</mi><mo>^</mo></mover><mi>j</mi></msub><mo stretchy="false">)</mo></mtd></mtr><mtr><mtd><mtext>accept&#160;</mtext><mo>⇔</mo><msub><mi>g</mi><mi>j</mi></msub><mo stretchy="false">(</mo><mover><mi>Δ</mi><mo>^</mo></mover><mo>;</mo><msub><mi>θ</mi><mi>j</mi></msub><mo stretchy="false">)</mo><mo>&gt;</mo><mn>0</mn></mtd></mtr></mtable></math></div></div>
+        <div><div class="eq-label">The counterpart's gain is linear in its type</div><div class="eq"><math display="block"><mtable columnalign="left"><mtr><mtd><msub><mi>g</mi><mi>j</mi></msub><mo stretchy="false">(</mo><mi>Δ</mi><mo>;</mo><msub><mi>θ</mi><mi>j</mi></msub><mo stretchy="false">)</mo><mo>=</mo><mo stretchy="false">⟨</mo><msub><mi>φ</mi><mi>j</mi></msub><mo stretchy="false">(</mo><mi>Δ</mi><mo stretchy="false">)</mo><mo>,</mo><msub><mi>θ</mi><mi>j</mi></msub><mo stretchy="false">⟩</mo><mo>,</mo><mspace width="0.6em"/><msub><mi>θ</mi><mi>j</mi></msub><mo>=</mo><mo stretchy="false">(</mo><msub><mi>v</mi><mi>j</mi></msub><mo>,</mo><msub><mi>λ</mi><mi>j</mi></msub><mo stretchy="false">)</mo></mtd></mtr><mtr><mtd><msub><mi>φ</mi><mi>j</mi></msub><mo stretchy="false">(</mo><mi>Δ</mi><mo stretchy="false">)</mo><mo>=</mo><mrow><mo>(</mo><mo>−</mo><mi>Δ</mi><mo>,</mo><mspace width="0.3em"/><munder><mo>∑</mo><mi>k</mi></munder><msubsup><mi>σ</mi><mi>k</mi><mn>2</mn></msubsup><mo stretchy="false">(</mo><mn>2</mn><msub><mi>x</mi><mrow><mi>j</mi><mi>k</mi></mrow></msub><msub><mi>Δ</mi><mi>k</mi></msub><mo>−</mo><msubsup><mi>Δ</mi><mi>k</mi><mn>2</mn></msubsup><mo stretchy="false">)</mo><mo>)</mo></mrow></mtd></mtr></mtable></math></div></div>
+        <div><div class="eq-label">Acceptance margin (Cauchy–Schwarz)</div><div class="eq"><math display="block"><mo>‖</mo><msub><mi>θ</mi><mi>j</mi></msub><mo>−</mo><msub><mover><mi>θ</mi><mo>^</mo></mover><mi>j</mi></msub><mo>‖</mo><mo>&lt;</mo><mi>γ</mi><mo stretchy="false">(</mo><mover><mi>Δ</mi><mo>^</mo></mover><mo stretchy="false">)</mo><mo>≔</mo><mfrac><mrow><msub><mi>g</mi><mi>j</mi></msub><mo stretchy="false">(</mo><mover><mi>Δ</mi><mo>^</mo></mover><mo>;</mo><msub><mover><mi>θ</mi><mo>^</mo></mover><mi>j</mi></msub><mo stretchy="false">)</mo></mrow><mrow><mo>‖</mo><msub><mi>φ</mi><mi>j</mi></msub><mo stretchy="false">(</mo><mover><mi>Δ</mi><mo>^</mo></mover><mo stretchy="false">)</mo><mo>‖</mo></mrow></mfrac><mspace width="0.5em"/><mo>⟹</mo><mspace width="0.5em"/><mtext>accepted</mtext></math></div></div>
+        <div><div class="eq-label">Local orders in the belief error e = θ̂<sub>j</sub> − θ<sub>j</sub></div><div class="eq"><math display="block"><mtable columnalign="left"><mtr><mtd><mn>1</mn><mo>−</mo><mfrac><mrow><msub><mi>g</mi><mi>i</mi></msub><msub><mi>g</mi><mi>j</mi></msub><mo stretchy="false">(</mo><mover><mi>Δ</mi><mo>^</mo></mover><mo stretchy="false">)</mo></mrow><mrow><msub><mi>g</mi><mi>i</mi></msub><msub><mi>g</mi><mi>j</mi></msub><mo stretchy="false">(</mo><msup><mi>Δ</mi><mo>*</mo></msup><mo stretchy="false">)</mo></mrow></mfrac><mo>=</mo><mi>O</mi><mo stretchy="false">(</mo><msup><mrow><mo>‖</mo><mi>e</mi><mo>‖</mo></mrow><mn>2</mn></msup><mo stretchy="false">)</mo></mtd></mtr><mtr><mtd><msub><mi>s</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mover><mi>Δ</mi><mo>^</mo></mover><mo stretchy="false">)</mo><mo>−</mo><msub><mi>s</mi><mi>i</mi></msub><mo stretchy="false">(</mo><msup><mi>Δ</mi><mo>*</mo></msup><mo stretchy="false">)</mo><mo>=</mo><mi>Θ</mi><mo stretchy="false">(</mo><mo>‖</mo><mi>e</mi><mo>‖</mo><mo stretchy="false">)</mo><mo>,</mo><mspace width="0.6em"/><msub><mi>s</mi><mi>i</mi></msub><mo>=</mo><mfrac><msub><mi>g</mi><mi>i</mi></msub><mrow><msub><mi>g</mi><mi>i</mi></msub><mo>+</mo><msub><mi>g</mi><mi>j</mi></msub></mrow></mfrac></mtd></mtr></mtable></math></div></div>
+      </div>
+    </div>
+
+    <h3 style="margin:36px 0 12px">Five results</h3>
+    <div class="goals">
+      <div class="goal"><span class="n">Proposition 1 · Safety</span><h3>Private information can delay trade but never hurt anyone</h3><p>Every executed trade strictly raises both participants' true utilities and leaves everyone else unchanged. So in every cell, U<sub>i</sub>(x<sub>i</sub>(t)) is nondecreasing for every agent. Total welfare ΔW(t) never falls, and no agent ever drops below its post-shock utility U<sub>i</sub>(x<sup>old</sup><sub>i</sub>). E<sub>pair</sub> has no such guarantee, because one trade can create new opportunities for other pairs.</p><p class="here">Check: the simulator's <a href="#simulator">Welfare</a> metric never decreases for any regime.</p></div>
+      <div class="goal"><span class="n">Proposition 2 · Revelation</span><h3>Each answer is a halfspace; only direction matters</h3><p>Accept means ⟨φ<sub>j</sub>(Δ̂), θ<sub>j</sub>⟩ &gt; 0, and reject means ≤ 0. The answers identify θ<sub>j</sub> up to positive scale, and the Nash bargain needs nothing more. An LLM that exaggerates how much it wants everything, by a common factor, therefore changes nothing. Only distortions of <i>relative</i> values or of curvature λ<sub>j</sub> move the bargain.</p><p class="here">Regime B already projects its belief onto each halfspace. See <a href="#simulator">Belief error</a>.</p></div>
+      <div class="goal"><span class="n">Proposition 3 · Acceptance margin</span><h3>A fixed belief error eventually blocks every trade</h3><p>The proposal is accepted whenever the belief error is below γ(Δ̂), the predicted counterpart gain per unit of exposure ‖φ<sub>j</sub>‖. Near stability, predicted gains shrink, so γ shrinks too. A belief error that does not shrink as fast blocks the remaining trades. B then stalls at a residual surplus set by its belief error, rather than converging. A robust proposer could instead maximize g<sub>i</sub>·(ĝ<sub>j</sub> − ρ‖φ<sub>j</sub>‖). Every such proposal is accepted when ‖e‖ ≤ ρ, at the cost of some surplus. That objective is not separable across instruments, so it needs a generic solver.</p></div>
+      <div class="goal"><span class="n">Proposition 4 · Efficiency vs. distribution</span><h3>Small errors mostly redistribute; near stability they block</h3><p>Assume Δ* is a unique, nondegenerate maximizer and the set of binding holding constraints does not change under small perturbation. By the implicit function theorem, Δ̂ − Δ* = O(‖e‖). Δ* maximizes the Nash product on its active face and the displacement stays on that face, so the first-order term vanishes and the loss is O(‖e‖<sup>2</sup>). The proposer's share of the surplus moves at first order. The local regime needs ‖e‖ to be small relative to the pair's own surplus. Near stability most pairs have little surplus, so the <i>average</i> loss across pairs grows far more slowly than ‖e‖<sup>2</sup>: linearly or slower, because even tiny errors already block or spoil the smallest trades.</p><p class="here">Check: the panel below measures both slopes on the current market.</p></div>
+      <div class="goal"><span class="n">Proposition 5 · Absorbing states</span><h3>B stops wherever A stops, and in more places</h3><p>At a pairwise-stable state every B proposal is rejected and nothing moves, so A's stopping states are absorbing for B. The converse fails in two ways. If the belief predicts no improving trade, B makes no proposal and learns nothing. If every proposal falls outside the margin of Proposition 3, B keeps getting rejected. So B's T<sub>ε</sub> can be infinite.</p><p class="here">Offline diagnostic (30 runs, default settings, round 120): of ordered pairs that still had an improving trade, B's proposal would be rejected for 89% and never made for 2%. B's stall is driven by rejections, not by silence.</p></div>
+    </div>
+
+    <div class="card" style="margin-top:28px" aria-labelledby="swTitle">
+      <div class="panel-head"><div><h3 id="swTitle">Check: one proposal under a wrong belief</h3><p id="swSub">Take the simulator's market right after the shock. For every ordered pair with an improving trade, perturb the proposer's belief about the counterpart's type by size e around the truth, propose the predicted Nash trade once, and score it against the full-information bargain. Four random directions per pair.</p></div></div>
+      <div class="legend" id="swLegend" style="margin-bottom:6px"></div>
+      <div class="pair-charts">
+        <div><div class="chart-title">Nash-product loss among accepted proposals</div><div class="chart-sub">1 − g<sub>i</sub>g<sub>j</sub>(Δ̂) / g<sub>i</sub>g<sub>j</sub>(Δ*), log–log. Dotted guide: slope 2.</div><div class="chart" id="swLoss"></div></div>
+        <div><div class="chart-title">Shift in the proposer's surplus share</div><div class="chart-sub">|s<sub>i</sub>(Δ̂) − s<sub>i</sub>(Δ*)|, log–log. Dotted guide: slope 1.</div><div class="chart" id="swShift"></div></div>
+      </div>
+      <div class="kv" id="swKv" style="margin-top:12px"></div>
+      <p class="note" style="margin-top:8px">Slopes are least-squares fits on the three smallest error sizes. Proposition 4 predicts 2 and 1 for the largest-surplus quartile. For all pairs the loss slope should fall well below 2, because pairs whose surplus is comparable to e fall outside the local regime.</p>
+    </div>
+
+    <div class="card" style="margin-top:16px" aria-labelledby="plTitle">
+      <div class="panel-head">
+        <div><h3 id="plTitle">Check: where regime B stops</h3><p>Proposition 3 predicts that B's plateau in E<sub>pair</sub> rises with its belief error and falls with more proposals per meeting. This sweep reruns regime B on the simulator's current market and shock, for 120 rounds, at five prior-noise levels and three proposal budgets m. The dashed line is regime A.</p></div>
+        <div class="row"><button class="btn primary" id="plRun" type="button">Run sweep</button><span class="status-line" id="plStatus"></span></div>
+      </div>
+      <div class="progress" aria-hidden="true"><div id="plProg"></div></div>
+      <div class="legend" id="plLegend" style="margin-top:10px"></div>
+      <div class="chart" id="plChart" style="margin-top:4px"><p class="note">Run the sweep to plot B's final E<sub>pair</sub> against prior noise. It takes a few seconds.</p></div>
+    </div>
+
+    <div class="two-col" style="margin-top:40px">
+      <div class="prose">
+        <h3 style="color:var(--ink)">Cell D and strategic disclosure</h3>
+        <p>Propositions 1–3 carry over to cell D: the acceptance rule is enforced on true utilities, and the LLM's belief comes from what the counterpart says rather than from yes/no answers. The difference is that talk can be strategic. Myerson and Satterthwaite show that with private valuations, no bilateral mechanism is incentive compatible, individually rational, budget balanced and ex post efficient all at once. Our current agents disclose truthfully up to noise and accept myopically, so the theorem does not bind yet.</p>
+        <p>Once agents are asked to maximize their own gain, it will. Crawford and Varian show that in Nash bargaining an agent gains by reporting a less concave utility. Here that means understating λ<sub>j</sub>. Proposition 2 says what to look for: lies about overall intensity are harmless, while lies about curvature and relative values move the split. Harsanyi and Selten's generalized Nash solution is the natural full-information-free benchmark for that strategic case.</p>
+      </div>
+      <div class="prose">
+        <h3 style="color:var(--ink)">Experimental protocol</h3>
+        <p><b>Controls.</b> Each cell starts from the same x<sup>old</sup>, shock, matching sequence and proposer coin flips (all seeded by round), with the same proposal budget m.</p>
+        <p><b>Treatments.</b> Prior noise (B), proposals per meeting, disclosure noise (D), and surplus ask (C, D). Proposed additions: a <i>shared ledger</i> that pools every answer about j across proposers; an <i>exploration probe</i>, a small trade sent when the belief predicts no trade; and the <i>robust margin</i> ρ.</p>
+        <p><b>Outcomes.</b> T<sub>ε</sub>, the E<sub>pair</sub> plateau, surplus left, rejection rate, messages and belief error, plus the welfare and fairness metrics of section 05. T<sub>ε</sub> is right-censored when a run never reaches ε, so we report the fraction reaching ε and Kaplan–Meier curves, not means.</p>
+        <p><b>Statistics.</b> Comparisons are paired by seed across cells, with at least 20 seeds per configuration. We report medians and interquartile ranges, and Wilcoxon signed-rank tests on paired differences.</p>
+      </div>
+    </div>
+
+    <h3 style="margin:36px 0 12px">Hypotheses and status</h3>
+    <div class="card"><div class="tbl-wrap"><table class="tbl-text">
+      <thead><tr><th>#</th><th>Prediction</th><th>Measured by</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td class="num">H1</td><td>ΔW(t) and every U<sub>i</sub>(t) are nondecreasing in all four cells (Prop. 1).</td><td>Welfare metric; per-round check</td><td>Holds in every run so far. This doubles as a code test of the acceptance rule.</td></tr>
+        <tr><td class="num">H2</td><td>B's E<sub>pair</sub> plateau rises with prior noise and falls with proposals per meeting (Prop. 3).</td><td>Plateau sweep above</td><td>Observed. In 12 offline runs per cell, the geometric mean at round 120 rose from 1e-4 (stale pre-shock prior, no added noise, m = 1) to 0.15 (noise 2, m = 1). At noise 1 it fell from 0.11 to 0.03 as m went from 1 to 8.</td></tr>
+        <tr><td class="num">H3</td><td>Largest-surplus pairs: loss slope 2 and share-shift slope 1. All pairs: loss slope well below 2 (Prop. 4).</td><td>Belief-error check above</td><td>Observed on the default market: slopes 2.01 and 1.00 for the top quartile. For all pairs, 0.54 for the loss and 0.89 for the share.</td></tr>
+        <tr><td class="num">H4</td><td>B stalls through rejected proposals rather than missing ones (Props. 3 and 5).</td><td>Pairs left open at the end, by reason</td><td>Observed offline: 89% rejected, 2% silent.</td></tr>
+        <tr><td class="num">H5</td><td>A shared ledger speeds B's learning by up to a factor of N − 1, since j is otherwise learned about only by the proposer who meets it.</td><td>T<sub>ε</sub>, belief error, ledger on vs off</td><td>Proposed; not implemented.</td></tr>
+        <tr><td class="num">H6</td><td>Self-interested LLMs in cell D understate risk aversion. The split moves toward the liar and Nash efficiency falls.</td><td>Inferred vs. true λ<sub>j</sub>; proposer share; per-meeting Nash efficiency</td><td>Proposed for the negotiation lab.</td></tr>
+        <tr><td class="num">H7</td><td>Bilateral trade cannot remove envy rooted in unequal endowments. Cells differ in distribution, not just speed.</td><td>EF, EF1, min ū, Gini of gains vs. a CEEI benchmark</td><td>Live in the fairness scorecard; the CEEI benchmark is still to build.</td></tr>
+      </tbody>
+    </table></div></div>
+  </div>
+</section>
+
+<!-- ================= METRICS: WELFARE AND FAIRNESS ================= -->
+<section class="band gut" id="metrics" aria-labelledby="mtTitle">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow"><span class="sn">05</span>Evaluation · Welfare and fairness</div>
+      <h2 id="mtTitle">What to measure besides the pairwise residual</h2>
+      <p>E<sub>pair</sub> measures stability: whether any pair still has a trade both sides want. A state where no pair can gain is not necessarily efficient or fair. One agent owning everything is pairwise stable. We therefore track welfare and fairness alongside it, each computed every round under the post-shock preferences. All of these appear in the simulator's <a href="#simulator">fairness scorecard</a> and metric switcher.</p>
+    </div>
+    <div class="card"><div class="tbl-wrap"><table class="tbl-text">
+      <thead><tr><th>Metric</th><th>Definition</th><th>Scale-invariant?</th><th>What it tells us here</th></tr></thead>
+      <tbody>
+        <tr><td><b>Welfare gain ΔW</b></td><td>Σ<sub>i</sub> U<sub>i</sub>(x<sub>i</sub>) − U<sub>i</sub>(x<sup>old</sup><sub>i</sub>)</td><td>No</td><td>Utilitarian progress since the shock. It cannot fall (Prop. 1).</td></tr>
+        <tr><td><b>Normalized utility ū<sub>i</sub></b></td><td>U<sub>i</sub>(x<sub>i</sub>) / U<sub>i</sub>(b<sub>i</sub>), where b<sub>i</sub> is i's bliss bundle and U<sub>i</sub>(0) = 0</td><td>Yes; fixed anchors, never recomputed per round</td><td>Mean ū is scale-free utilitarian welfare. Min ū is the egalitarian (Rawlsian) view: how well off the worst-off agent is.</td></tr>
+        <tr><td><b>Nash welfare of gains</b></td><td>(Π<sub>i</sub> [U<sub>i</sub>(x<sub>i</sub>) − U<sub>i</sub>(x<sup>old</sup><sub>i</sub>)])<sup>1/N</sup></td><td>Yes, as a ranking</td><td>The objective of the N-player Nash bargaining solution with disagreement point x<sup>old</sup>. For additive indivisible goods its maximizer is EF1 and Pareto optimal (Caragiannis et al.); that guarantee does not carry over automatically to our concave utilities. It is our centralized benchmark, not a live curve: it is zero whenever any agent has not traded, and Nash welfare of utility <i>levels</i> is undefined here because U<sub>i</sub> can be negative.</td></tr>
+        <tr><td><b>Envy-freeness (EF)</b></td><td>Share of ordered pairs with U<sub>i</sub>(x<sub>j</sub>) ≤ U<sub>i</sub>(x<sub>i</sub>); max envy normalized by U<sub>i</sub>(b<sub>i</sub>)</td><td>Yes</td><td>Whether anyone would rather hold someone else's portfolio.</td></tr>
+        <tr><td><b>EF1</b></td><td>i envies j, but removing one lot from x<sub>i</sub> or x<sub>j</sub> ends the envy</td><td>Yes</td><td>Envy that is small, in the sense of one indivisible lot.</td></tr>
+        <tr><td><b>PROP = MMS</b></td><td>U<sub>i</sub>(x<sub>i</sub>) ≥ U<sub>i</sub>(S/N)</td><td>Yes</td><td>Is everyone at least as well off as under an equal split of the market? In this model this is also the maximin share (see right).</td></tr>
+        <tr><td><b>PROP1</b></td><td>PROP after adding one lot that i does not hold, or removing one lot that it does</td><td>Yes</td><td>Proportionality up to one lot.</td></tr>
+        <tr><td><b>Gini of gains</b></td><td>Gini coefficient of max(0, U<sub>i</sub> − U<sub>i</sub>(x<sup>old</sup><sub>i</sub>))</td><td>No</td><td>Whether the gains from re-trading are concentrated in a few agents.</td></tr>
+        <tr><td><b>Nash efficiency η</b></td><td>Mean over executed trades of g<sub>i</sub>g<sub>j</sub>(Δ) / g<sub>i</sub>g<sub>j</sub>(Δ*) ∈ (0, 1]</td><td>Yes</td><td>How close each executed deal is to the full-information Nash bargain from the same state. It is 1 by construction in A.</td></tr>
+        <tr><td><b>Proposer share</b></td><td>Mean over executed trades of g<sub>proposer</sub> / (g<sub>i</sub> + g<sub>j</sub>)</td><td>No</td><td>Who captures the surplus. A is about 50% on average because the proposer is chosen at random. A gap in B, C or D is a bargaining-power effect.</td></tr>
+      </tbody>
+    </table></div></div>
+
+    <div class="two-col" style="margin-top:32px">
+      <div class="prose">
+        <p><b>Why EF1 and PROP1 need adapting.</b> Both were defined for indivisible goods, by Lipton et al. and Budish for EF1 and by Conitzer, Freeman and Shah for PROP1. Our instruments are divisible, so exact EF and PROP are already well defined. The "up to one item" versions become meaningful once trades happen in lots. We take one lot to be S<sub>k</sub>/(3N), a third of an equal share. As the lot shrinks, EF1 tends to EF.</p>
+        <p>Utility is also not monotone: past i's ideal holding, more of an instrument lowers utility, and there is no free disposal. A lot can therefore be a good or a chore. We use the goods-and-chores versions of Aziz et al., in which the lot may be removed from either bundle.</p>
+        <p><b>PROP is easy here, EF is not.</b> In every allocation we have generated, including x<sup>old</sup>, every agent beats the equal split. The equal split forces each agent to hold instruments far from its preferred duration, which it cannot dispose of, so sorting by habitat beats it easily. Envy is the measure that varies: some agents prefer another clientele's portfolio. Bilateral trades from unequal endowments preserve much of that envy. The natural benchmark is the competitive equilibrium from equal incomes (CEEI), which for divisible goods and concave utilities is both envy-free and Pareto optimal (Varian 1974).</p>
+        <p><b>Stability is not welfare.</b> Offline, over 20 seeds per shock, B ended with a higher ΔW than A in 15 of 20 runs for the insurer shock and 13 of 20 for the bank shock, though only 6 of 20 for idiosyncratic shocks, while never becoming pairwise stable. Which pairwise-stable state the market reaches is path dependent, and different states can rank differently on every metric above.</p>
+      </div>
+      <div class="stack">
+        <div><div class="eq-label">Normalized utility, with bliss bundle b<sub>i</sub></div><div class="eq"><math display="block"><msub><mover><mi>u</mi><mo>‾</mo></mover><mi>i</mi></msub><mo>=</mo><mfrac><mrow><msub><mi>U</mi><mi>i</mi></msub><mo stretchy="false">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="false">)</mo></mrow><mrow><msub><mi>U</mi><mi>i</mi></msub><mo stretchy="false">(</mo><msub><mi>b</mi><mi>i</mi></msub><mo stretchy="false">)</mo></mrow></mfrac><mo>,</mo><mspace width="0.6em"/><msub><mi>b</mi><mrow><mi>i</mi><mi>k</mi></mrow></msub><mo>=</mo><mo movablelimits="false">min</mo><mrow><mo>(</mo><mfrac><msub><mi>v</mi><mrow><mi>i</mi><mi>k</mi></mrow></msub><mrow><mn>2</mn><msub><mi>λ</mi><mi>i</mi></msub><msubsup><mi>σ</mi><mi>k</mi><mn>2</mn></msubsup></mrow></mfrac><mo>,</mo><msub><mi>S</mi><mi>k</mi></msub><mo>)</mo></mrow></math></div></div>
+        <div><div class="eq-label">EF1 with goods and chores (o is one lot)</div><div class="eq"><math display="block"><msub><mi>U</mi><mi>i</mi></msub><mo stretchy="false">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>≥</mo><msub><mi>U</mi><mi>i</mi></msub><mo stretchy="false">(</mo><msub><mi>x</mi><mi>j</mi></msub><mo stretchy="false">)</mo><mspace width="0.4em"/><mtext>or</mtext><mspace width="0.4em"/><mo>∃</mo><mi>o</mi><mo>∈</mo><msub><mi>x</mi><mi>i</mi></msub><mo>∪</mo><msub><mi>x</mi><mi>j</mi></msub><mo>:</mo><mspace width="0.3em"/><msub><mi>U</mi><mi>i</mi></msub><mo stretchy="false">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>∖</mo><mi>o</mi><mo stretchy="false">)</mo><mo>≥</mo><msub><mi>U</mi><mi>i</mi></msub><mo stretchy="false">(</mo><msub><mi>x</mi><mi>j</mi></msub><mo>∖</mo><mi>o</mi><mo stretchy="false">)</mo></math></div></div>
+        <div><div class="eq-label">PROP1 with goods and chores</div><div class="eq"><math display="block"><mo>∃</mo><mi>o</mi><mo>∉</mo><msub><mi>x</mi><mi>i</mi></msub><mo>:</mo><mspace width="0.2em"/><msub><mi>U</mi><mi>i</mi></msub><mo stretchy="false">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>∪</mo><mi>o</mi><mo stretchy="false">)</mo><mo>≥</mo><msub><mi>U</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>S</mi><mo>/</mo><mi>N</mi><mo stretchy="false">)</mo><mspace width="0.5em"/><mtext>or</mtext><mspace width="0.5em"/><mo>∃</mo><mi>o</mi><mo>∈</mo><msub><mi>x</mi><mi>i</mi></msub><mo>:</mo><mspace width="0.2em"/><msub><mi>U</mi><mi>i</mi></msub><mo stretchy="false">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>∖</mo><mi>o</mi><mo stretchy="false">)</mo><mo>≥</mo><msub><mi>U</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>S</mi><mo>/</mo><mi>N</mi><mo stretchy="false">)</mo></math></div></div>
+        <div><div class="eq-label">Maximin share equals the equal-split share (U<sub>i</sub> concave, goods divisible)</div><div class="eq"><math display="block"><munder><mo movablelimits="false">min</mo><mi>p</mi></munder><msub><mi>U</mi><mi>i</mi></msub><mo stretchy="false">(</mo><msub><mi>B</mi><mi>p</mi></msub><mo stretchy="false">)</mo><mo>≤</mo><mfrac><mn>1</mn><mi>N</mi></mfrac><munder><mo>∑</mo><mi>p</mi></munder><msub><mi>U</mi><mi>i</mi></msub><mo stretchy="false">(</mo><msub><mi>B</mi><mi>p</mi></msub><mo stretchy="false">)</mo><mo>≤</mo><msub><mi>U</mi><mi>i</mi></msub><mrow><mo>(</mo><mfrac><mi>S</mi><mi>N</mi></mfrac><mo>)</mo></mrow><mspace width="0.4em"/><mo>⟹</mo><mspace width="0.4em"/><msub><mtext>MMS</mtext><mi>i</mi></msub><mo>=</mo><msub><mi>U</mi><mi>i</mi></msub><mrow><mo>(</mo><mfrac><mi>S</mi><mi>N</mi></mfrac><mo>)</mo></mrow></math></div><p class="note" style="margin-top:6px">For any partition B<sub>1</sub>, …, B<sub>N</sub> of the market, the first inequality holds because a minimum is at most an average, and the second is Jensen's inequality. The equal split attains the bound.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SIMULATOR ================= -->
+<section class="band alt gut" id="simulator" aria-labelledby="simTitle">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow"><span class="sn">06</span>Experiments</div>
+      <h2 id="simTitle">Run the market after a shock</h2>
+      <p>The market first settles to a pairwise-stable allocation x<sup>old</sup> under regime A. Then the shock hits and every enabled regime restarts from x<sup>old</sup>, seeing the same matchings each round. Cells C and D use a stylised negotiator so thousands of meetings can run in the browser; their knobs are under Negotiation parameters. The <a href="#lab">negotiation lab</a> below runs single meetings with Claude to calibrate them.</p>
+    </div>
+    <div class="sim">
+      <aside class="rail" aria-label="Simulator settings">
+        <div class="card">
+          <h3>Market</h3>
+          <div class="field"><label for="inN">Agents N <span class="num" id="outN"></span></label><input type="range" id="inN" min="8" max="40" step="2" value="24"></div>
+          <div class="field"><span class="lbl">Instruments K</span><div class="seg" role="group" aria-label="Instruments" id="inK"><button type="button" data-v="4">4</button><button type="button" data-v="6" aria-pressed="true">6</button><button type="button" data-v="8">8</button></div></div>
+          <div class="field"><label for="inS2">Common variance σ² <span class="num" id="outS2"></span></label><input type="range" id="inS2" min="0.01" max="0.12" step="0.005" value="0.04"></div>
+          <div class="field"><label for="inSeed">Seed <span class="muted">agents + matchings</span></label><input type="number" id="inSeed" value="7" min="1" step="1"></div>
+        </div>
+        <div class="card">
+          <h3>Shock</h3>
+          <div class="field"><label for="inShock">Scenario</label><select id="inShock"></select></div>
+          <p class="note" id="shockDetail"></p>
+          <div class="field"><label for="inSize">Shock size <span class="num" id="outSize"></span></label><input type="range" id="inSize" min="0.25" max="3" step="0.25" value="1"></div>
+        </div>
+        <div class="card">
+          <h3>Regimes</h3>
+          <div class="reg-toggle" id="regToggles"></div>
+          <div class="field"><label for="inEps">Tolerance ε <span class="num" id="outEps"></span></label><input type="range" id="inEps" min="-3" max="-0.5" step="0.1" value="-1.7"></div>
+          <div class="field"><label for="inRounds">Rounds <span class="num" id="outRounds"></span></label><input type="range" id="inRounds" min="20" max="300" step="10" value="120"></div>
+          <div class="field"><label for="inSpeed">Speed <span class="num" id="outSpeed"></span></label><input type="range" id="inSpeed" min="1" max="40" step="1" value="12"></div>
+          <details class="more">
+            <summary>Negotiation parameters</summary>
+            <div class="stack">
+              <div class="field"><label for="pMaxProp">Proposals per meeting (B, C, D) <span class="num" id="oMaxProp"></span></label><input type="range" id="pMaxProp" min="1" max="8" step="1" value="3"></div>
+              <div class="field"><label for="pPrior">B: prior noise <span class="num" id="oPrior"></span></label><input type="range" id="pPrior" min="0" max="3" step="0.25" value="1"></div>
+              <div class="field"><label for="pAssets">C/D: instruments per offer <span class="num" id="oAssets"></span></label><input type="range" id="pAssets" min="2" max="8" step="1" value="2"></div>
+              <div class="field"><label for="pLot">C/D: lot size <span class="num" id="oLot"></span></label><input type="range" id="pLot" min="0" max="0.5" step="0.05" value="0.1"></div>
+              <div class="field"><label for="pNoise">C/D: size noise <span class="num" id="oNoise"></span></label><input type="range" id="pNoise" min="0" max="1" step="0.05" value="0.3"></div>
+              <div class="field"><label for="pBias">C/D: proposer's surplus ask <span class="num" id="oBias"></span></label><input type="range" id="pBias" min="0.5" max="0.9" step="0.05" value="0.65"></div>
+              <div class="field"><label for="pDisc">D: disclosure noise <span class="num" id="oDisc"></span></label><input type="range" id="pDisc" min="0" max="1" step="0.05" value="0.3"></div>
+              <p class="note">B's prior is each counterpart's pre-shock θ plus noise; every accepted or rejected proposal is a halfspace on θ = (v, λ) and the belief is projected onto it. C and D start from the bargain they believe in, keep a few instruments, round to lots, add size noise, and ask for a larger share of the surplus that softens after each rejection.</p>
+            </div>
+          </details>
+        </div>
+      </aside>
+
+      <div class="sim-main">
+        <div class="card">
+          <div class="panel-head">
+            <div><h3 id="metricTitle">Pairwise residual</h3><p id="metricBlurb"></p></div>
+            <div class="row">
+              <button class="btn primary" id="playBtn" type="button">Pause</button>
+              <button class="btn" id="stepBtn" type="button">Step</button>
+              <button class="btn" id="resetBtn" type="button">Restart</button>
+              <span class="clock">round <b id="clockT">0</b> / <span id="clockMax">120</span></span>
+            </div>
+          </div>
+          <div class="row" style="justify-content:space-between;margin-bottom:6px">
+            <div class="legend" id="mainLegend"></div>
+            <div class="seg" role="group" aria-label="Metric" id="metricSeg"></div>
+          </div>
+          <div class="chart" id="mainChart"></div>
+        </div>
+
+        <div class="card">
+          <div class="panel-head"><h3>Regime scorecard</h3><span class="note">Click a row to inspect that run below and in the solver.</span></div>
+          <div class="tbl-wrap"><table id="sumTable"></table></div>
+        </div>
+
+        <div class="card" id="fairCard">
+          <div class="panel-head"><div><h3>Welfare and fairness scorecard</h3><p>The metrics of <a href="#metrics">section 05</a> at the current round, under post-shock preferences. The first row is the allocation right after the shock, for reference. ū is utility normalized by the agent's bliss bundle. EF1 and PROP1 use lots of S<sub>k</sub>/(3N).</p></div></div>
+          <div class="tbl-wrap"><table id="fairTable"></table></div>
+        </div>
+
+        <div class="split">
+          <div class="card">
+            <div class="panel-head"><div><h3 id="heatTitle">Holdings by duration</h3><p id="heatSub">Rows are agents sorted by preferred duration d*; columns are instruments.</p></div>
+              <div class="seg" role="group" aria-label="Heatmap view" id="heatSeg"><button type="button" data-v="level" aria-pressed="true">Holdings</button><button type="button" data-v="change">Change since shock</button></div>
+            </div>
+            <div class="legend" id="typeLegend" style="margin-bottom:6px"></div>
+            <div class="heat" id="heatChart"></div>
+          </div>
+          <div class="card">
+            <div class="panel-head"><div><h3>Who gains from re-trading</h3><p>Utility change of each agent since the shock, under the post-shock preferences. Every executed trade helps both sides, so no bar falls below zero.</p></div></div>
+            <div class="legend"><span><span class="dot" style="background:var(--shock)"></span>Hit by the shock</span><span><span class="dot" style="background:var(--muted)"></span>Not hit</span></div>
+            <div class="chart" id="gainChart"></div>
+            <p class="note" id="gainNote" style="margin-top:6px"></p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="panel-head"><div><h3>Batch over seeds</h3><p>Repeat the current setup with new agents and matchings and compare T<sub>ε</sub> across regimes. Each dot is one seed; runs that never reach ε sit in the column at the right.</p></div></div>
+          <div class="row" style="gap:14px;margin-bottom:10px">
+            <div class="field" style="width:170px"><label for="bSeeds">Seeds <span class="num" id="oSeeds"></span></label><input type="range" id="bSeeds" min="4" max="30" step="2" value="10"></div>
+            <button class="btn primary" id="bRun" type="button">Run batch</button>
+            <span class="status-line" id="bStatus"></span>
+          </div>
+          <div class="progress" aria-hidden="true"><div id="bProg"></div></div>
+          <div class="chart" id="bChart" style="margin-top:12px"></div>
+          <div class="tbl-wrap"><table id="bTable"></table></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAB ================= -->
+<section class="band gut" id="lab" aria-labelledby="labTitle">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow"><span class="sn">07</span>Cells C and D with a real model</div>
+      <h2 id="labTitle">Negotiation lab</h2>
+      <p>The market-wide C and D curves use a stylised negotiator so they can run thousands of meetings. Here Claude plays both sides of one meeting, taken from the simulator's market as it stands. Each side can check candidate trades with a calculator of its own utility. The page then scores the deal against the full-information Nash bargain from the solver above.</p>
+    </div>
+    <div class="card">
+      <div class="lab-grid">
+        <div class="ctl stack">
+          <div class="field"><label for="labI">Speaks first</label><select id="labI"></select></div>
+          <div class="field"><label for="labJ">Counterpart</label><select id="labJ"></select></div>
+          <button class="btn small" id="labSuggest" type="button">Pick the pair with the most to gain</button>
+          <div class="field"><span class="lbl">Information</span>
+            <div class="seg" role="group" aria-label="Information" id="labInfo"><button type="button" data-v="full" aria-pressed="false">Full (cell C)</button><button type="button" data-v="private" aria-pressed="true">Private (cell D)</button></div>
+          </div>
+          <div class="field"><span class="lbl">Model speed</span>
+            <div class="seg" role="group" aria-label="Model speed" id="labTier"><button type="button" data-v="quick" aria-pressed="true">Quick</button><button type="button" data-v="default" aria-pressed="false">Balanced</button></div>
+          </div>
+          <div class="field"><label for="labTurns">Message limit <span class="num" id="oTurns">8</span></label><input type="range" id="labTurns" min="2" max="12" step="1" value="8"></div>
+          <div class="row">
+            <button class="btn primary" id="labRun" type="button">Start negotiation</button>
+            <button class="btn" id="labStop" type="button" disabled>Stop</button>
+          </div>
+          <p class="status-line" id="labStatus"></p>
+          <p class="note" id="labPairInfo"></p>
+        </div>
+        <div class="stack">
+          <div class="transcript" id="labTranscript" aria-live="polite"><div class="empty">Pick a pair and start. Each message is one call to Claude, made with your own Claude usage.</div></div>
+          <div id="labResult"></div>
+          <div id="labLogWrap" hidden>
+            <h3>Lab log</h3>
+            <div class="tbl-wrap"><table id="labLog"></table></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= TERM STRUCTURE ================= -->
+<section class="band gut" id="term-structure" aria-labelledby="tsTitle">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow"><span class="sn">08</span>Application</div>
+      <h2 id="tsTitle">An endogenous term structure</h2>
+      <p>The term structure says how yields vary with maturity. We add time, money and K zero-coupon bonds and ask how the yield curve emerges, and how it adjusts after a financial shock, when bonds only change hands bilaterally and no one posts a price.</p>
+    </div>
+    <div class="two-col">
+      <div class="prose">
+        <p>Each bond promises $1 at maturity T<sub>k</sub>, but default makes the payoff uncertain, with mean μ<sub>k</sub> and variance σ<sup>2</sup><sub>k</sub>. Money is the numeraire with unit marginal utility. Trades move money and any bundle of bonds, (m<sub>i</sub>, x<sub>i</sub>) ← (m<sub>i</sub> + Δ<sub>m</sub>, x<sub>i</sub> + Δ), subject to feasibility and mutual acceptance.</p>
+        <p>Agents keep their duration preference and risk aversion and discount with either the <b>Treasury benchmark</b>, an exogenous curve that needs no corporate bond prices, or <b>individual</b> rates ρ<sub>i</sub>. With money, utility is transferable, so the Nash bargain maximizes the pair's joint surplus bond by bond and splits it equally through Δ<sub>m</sub>.</p>
+        <p>Each agent's marginal valuation in money is a private price. At an interior pairwise equilibrium these agree across holders, which yields an implicit price P*<sub>k</sub> and an equilibrium yield. During adjustment they disagree, and <b>their dispersion measures incomplete price discovery</b>.</p>
+      </div>
+      <div class="stack">
+        <div><div class="eq-label">Utility with money</div><div class="eq"><math display="block"><msub><mi>U</mi><mi>i</mi></msub><mo stretchy="false">(</mo><msub><mi>m</mi><mi>i</mi></msub><mo>,</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>=</mo><msub><mi>m</mi><mi>i</mi></msub><mo>+</mo><msub><mo>∑</mo><mi>k</mi></msub><msub><mi>x</mi><mrow><mi>i</mi><mi>k</mi></mrow></msub><mo stretchy="false">[</mo><msub><mi>D</mi><mi>i</mi></msub><mo stretchy="false">(</mo><msub><mi>T</mi><mi>k</mi></msub><mo stretchy="false">)</mo><msub><mi>μ</mi><mi>k</mi></msub><mo>+</mo><msub><mi>α</mi><mi>i</mi></msub><msub><mi>v</mi><mrow><mi>i</mi><mi>k</mi></mrow></msub><mo stretchy="false">]</mo><mo>−</mo><msub><mi>λ</mi><mi>i</mi></msub><msub><mo>∑</mo><mi>k</mi></msub><msubsup><mi>x</mi><mrow><mi>i</mi><mi>k</mi></mrow><mn>2</mn></msubsup><msub><mi>D</mi><mi>i</mi></msub><msup><mrow><mo stretchy="false">(</mo><msub><mi>T</mi><mi>k</mi></msub><mo stretchy="false">)</mo></mrow><mn>2</mn></msup><msubsup><mi>σ</mi><mi>k</mi><mn>2</mn></msubsup></math></div></div>
+        <div><div class="eq-label">Discounting</div><div class="eq"><math display="block"><msub><mi>D</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>T</mi><mo stretchy="false">)</mo><mo>=</mo><mrow><mo>{</mo><mtable columnalign="left"><mtr><mtd><msup><mi>e</mi><mrow><mo>−</mo><msub><mi>y</mi><mtext>Treasury</mtext></msub><mo stretchy="false">(</mo><mi>T</mi><mo stretchy="false">)</mo><mi>T</mi></mrow></msup><mo>,</mo></mtd><mtd><mtext>Treasury benchmark</mtext></mtd></mtr><mtr><mtd><msup><mi>e</mi><mrow><mo>−</mo><msub><mi>ρ</mi><mi>i</mi></msub><mi>T</mi></mrow></msup><mo>,</mo></mtd><mtd><mtext>individual discounting</mtext></mtd></mtr></mtable></mrow></math></div></div>
+        <div><div class="eq-label">Marginal valuation, implied yield and credit spread</div><div class="eq"><math display="block"><mtable columnalign="left"><mtr><mtd><msub><mi>p</mi><mrow><mi>i</mi><mi>k</mi></mrow></msub><mo>=</mo><mfrac><mrow><mo>∂</mo><msub><mi>U</mi><mi>i</mi></msub></mrow><mrow><mo>∂</mo><msub><mi>x</mi><mrow><mi>i</mi><mi>k</mi></mrow></msub></mrow></mfrac><mo>=</mo><msub><mi>D</mi><mi>i</mi></msub><mo stretchy="false">(</mo><msub><mi>T</mi><mi>k</mi></msub><mo stretchy="false">)</mo><msub><mi>μ</mi><mi>k</mi></msub><mo>+</mo><msub><mi>α</mi><mi>i</mi></msub><msub><mi>v</mi><mrow><mi>i</mi><mi>k</mi></mrow></msub><mo>−</mo><mn>2</mn><msub><mi>λ</mi><mi>i</mi></msub><msub><mi>D</mi><mi>i</mi></msub><msup><mrow><mo stretchy="false">(</mo><msub><mi>T</mi><mi>k</mi></msub><mo stretchy="false">)</mo></mrow><mn>2</mn></msup><msubsup><mi>σ</mi><mi>k</mi><mn>2</mn></msubsup><msub><mi>x</mi><mrow><mi>i</mi><mi>k</mi></mrow></msub></mtd></mtr><mtr><mtd><msup><mi>y</mi><mo>*</mo></msup><mo stretchy="false">(</mo><msub><mi>T</mi><mi>k</mi></msub><mo stretchy="false">)</mo><mo>=</mo><mo>−</mo><mfrac><mrow><mi>log</mi><msubsup><mi>P</mi><mi>k</mi><mo>*</mo></msubsup></mrow><msub><mi>T</mi><mi>k</mi></msub></mfrac><mspace width="1.2em"/><msup><mi>s</mi><mo>*</mo></msup><mo stretchy="false">(</mo><msub><mi>T</mi><mi>k</mi></msub><mo stretchy="false">)</mo><mo>=</mo><mo>−</mo><mfrac><mn>1</mn><msub><mi>T</mi><mi>k</mi></msub></mfrac><mi>log</mi><mfrac><msubsup><mi>P</mi><mi>k</mi><mo>*</mo></msubsup><mrow><mi>D</mi><mo stretchy="false">(</mo><msub><mi>T</mi><mi>k</mi></msub><mo stretchy="false">)</mo></mrow></mfrac></mtd></mtr></mtable></math></div></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:28px" aria-labelledby="curveTitle">
+      <div class="panel-head">
+        <div><h3 id="curveTitle">Yield curve discovery</h3><p id="tsSub">24 agents trade nine zero-coupon bonds, 6 months to 30 years. The Treasury curve is an illustrative Nelson–Siegel curve, not market data.</p></div>
+        <div class="row">
+          <button class="btn primary" id="tsPlay" type="button">Pause</button>
+          <button class="btn" id="tsStep" type="button">Step</button>
+          <button class="btn" id="tsReset" type="button">Restart</button>
+          <span class="clock">round <b id="tsClock">0</b> / 60</span>
+        </div>
+      </div>
+      <div class="row" style="gap:16px;margin-bottom:12px;align-items:flex-end">
+        <div class="field"><span class="lbl">Discounting</span><div class="seg" role="group" aria-label="Discounting" id="tsDisc"><button type="button" data-v="treasury" aria-pressed="true">Treasury benchmark</button><button type="button" data-v="individual">Individual ρ<sub>i</sub></button></div></div>
+        <div class="field" style="min-width:220px;flex:1 1 220px;max-width:320px"><label for="tsShock">Shock</label><select id="tsShock"></select></div>
+        <div class="field" style="width:180px"><label for="tsSize">Shock size <span class="num" id="tsSizeO"></span></label><input type="range" id="tsSize" min="0.25" max="3" step="0.25" value="1"></div>
+      </div>
+      <p class="note" id="tsShockDetail" style="margin-bottom:10px"></p>
+      <div class="ts-grid">
+        <div>
+          <div class="legend" id="tsLegend"></div>
+          <div class="chart" id="tsCurve" style="margin-top:4px"></div>
+        </div>
+        <div>
+          <div class="chart-title">Dispersion of private yields</div>
+          <div class="chart-sub">Mean over bonds of the cross-holder standard deviation of each holder's implied yield, in basis points.</div>
+          <div class="chart" id="tsDisp"></div>
+          <div class="kv" id="tsKv" style="margin-top:10px"></div>
+        </div>
+      </div>
+      <div class="tbl-wrap" style="margin-top:14px"><table id="tsTable"></table></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= GOALS ================= -->
+<section class="band alt gut" id="goals" aria-labelledby="goalTitle">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow"><span class="sn">09</span>Plan</div>
+      <h2 id="goalTitle">Concrete goals</h2>
+    </div>
+    <div class="goals">
+      <div class="goal"><span class="n">Goal 1</span><h3>Full-information baseline</h3><p>For a tractable class, such as mean-variance utilities with a riskless asset, characterize when bilateral Nash-bargaining dynamics reach Pareto optimality. Bound T<sub>ε</sub> under random matching, possibly with gossip-style spectral arguments.</p><p class="here">On this site: regime A in the <a href="#simulator">simulator</a>, and the money-based market in the <a href="#term-structure">term structure</a> application, where joint-surplus bargaining behaves like randomized gossip.</p></div>
+      <div class="goal"><span class="n">Goal 2</span><h3>Inference</h3><p>Each accepted or rejected proposal reveals a halfspace constraint on the counterpart's θ. Bound the number of proposals needed to find an improving trade. This is the baseline LLM inference must beat.</p><p class="here">On this site: regime B projects its belief onto each halfspace (<a href="#simulator">Belief error</a>). Section <a href="#theory">04</a> shows that answers identify θ only up to scale, which is all Nash bargaining needs, and gives a K log(1/δ) counting lower bound.</p></div>
+      <div class="goal"><span class="n">Goal 3</span><h3>Experiments</h3><p>Compare cells A–D, with and without a money-like asset, measuring E(t), R(t), T<sub>ε</sub>, communication cost and inference accuracy, plus welfare and fairness: ΔW, normalized utility, EF/EF1, PROP/PROP1 and per-meeting Nash efficiency. LLM results are used to form conjectures.</p><p class="here">On this site: the scorecard and <a href="#simulator">batch runs</a> report T<sub>ε</sub>, residual surplus, messages and rejection rates for every cell, the <a href="#metrics">fairness scorecard</a> reports the metrics of section 05, and the <a href="#lab">negotiation lab</a> runs cells C and D with Claude.</p></div>
+    </div>
+
+    <h3 style="margin-top:44px;margin-bottom:12px">References</h3>
+    <ol class="refs">
+      <li>A. Feldman. Bilateral trading processes, pairwise optimality, and Pareto optimality. <i>Rev. Econ. Stud.</i> 40(4):463–473, 1973.</li>
+      <li>J. Nash. The bargaining problem. <i>Econometrica</i> 18(2):155–162, 1950.</li>
+      <li>P. Cramton, R. Gibbons, P. Klemperer. Dissolving a partnership efficiently. <i>Econometrica</i> 55(3):615–632, 1987.</li>
+      <li>S. Boyd, A. Ghosh, B. Prabhakar, D. Shah. Randomized gossip algorithms. <i>IEEE Trans. Inf. Theory</i> 52(6):2508–2530, 2006.</li>
+      <li>M. Zadimoghaddam, A. Roth. Efficiently learning from revealed preference. <i>WINE</i> 2012.</li>
+      <li>F. Bianchi et al. How well can LLMs negotiate? NegotiationArena platform and analysis. <i>ICML</i> 2024.</li>
+      <li>J. Harsanyi, R. Selten. A generalized Nash solution for two-person bargaining games with incomplete information. <i>Management Science</i> 18(5):P80–P106, 1972.</li>
+      <li>R. Myerson, M. Satterthwaite. Efficient mechanisms for bilateral trading. <i>J. Econ. Theory</i> 29(2):265–281, 1983.</li>
+      <li>V. Crawford, H. Varian. Distortion of preferences and the Nash theory of bargaining. <i>Economics Letters</i> 3(3):203–206, 1979.</li>
+      <li>H. Varian. Equity, envy, and efficiency. <i>J. Econ. Theory</i> 9(1):63–91, 1974.</li>
+      <li>R. Lipton, E. Markakis, E. Mossel, A. Saberi. On approximately fair allocations of indivisible goods. <i>ACM EC</i> 2004.</li>
+      <li>E. Budish. The combinatorial assignment problem: approximate competitive equilibrium from equal incomes. <i>J. Political Economy</i> 119(6):1061–1103, 2011.</li>
+      <li>V. Conitzer, R. Freeman, N. Shah. Fair public decision making. <i>ACM EC</i> 2017.</li>
+      <li>H. Aziz, I. Caragiannis, A. Igarashi, T. Walsh. Fair allocation of indivisible goods and chores. <i>IJCAI</i> 2019.</li>
+      <li>I. Caragiannis, D. Kurokawa, H. Moulin, A. Procaccia, N. Shah, J. Wang. The unreasonable fairness of maximum Nash welfare. <i>ACM Trans. Econ. Comput.</i> 7(3), 2019.</li>
+    </ol>
+  </div>
+</section>
+</main>
+
+<footer class="gut"><div class="wrap">Chirag Rastogi and Sejun Park · CS 580, Fall 2026. Every chart and table on this page is simulated in your browser from the model above; the few figures quoted as offline in section 04 come from batch runs of the same engine. The market-wide C and D curves use a stylised negotiator; the negotiation lab calls Claude on the viewer's own account.</div></footer>
+
+<script src="engine.js"></script>
+<script>
+(function () {
+"use strict";
+const S = window.Engine;
+const REG = ["A", "B", "C", "D"];
+const REG_NAME = { A: "Solver · full info", B: "Solver · private", C: "LLM · full info", D: "LLM · private" };
+const TYPE_VARS = ["--t0", "--t1", "--t2", "--t3"];
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const sci = (v) => (v === null || v === undefined || !isFinite(v) ? "—" : v === 0 ? "0" : Math.abs(v) >= 0.01 && Math.abs(v) < 1000 ? +v.toPrecision(3) + "" : v.toExponential(1));
+const fx = (v, d) => (v === null || v === undefined || !isFinite(v) ? "—" : v.toFixed(d));
+
+// ---------------- generic SVG plot ----------------
+function niceTicks(lo, hi, n) {
+  const span = hi - lo || 1, step0 = span / n, mag = Math.pow(10, Math.floor(Math.log10(step0)));
+  const err = step0 / mag, step = (err >= 7.5 ? 10 : err >= 3.5 ? 5 : err >= 1.5 ? 2 : 1) * mag;
+  const out = []; for (let v = Math.ceil(lo / step - 1e-9) * step; v <= hi + 1e-9 * step; v += step) out.push(+v.toPrecision(12));
+  return out;
+}
+function axis(spec, vals, pad) {
+  let lo = spec.min, hi = spec.max;
+  const fin = vals.filter((v) => v !== null && isFinite(v) && (!spec.log || v > 0));
+  if (spec.log) {
+    if (lo === undefined) lo = Math.pow(10, Math.floor(Math.log10(Math.min(...fin, hi || Infinity)) - 0.0001));
+    if (hi === undefined) hi = Math.pow(10, Math.ceil(Math.log10(Math.max(...fin)) + 0.0001));
+    if (spec.floorDecades && hi / lo > Math.pow(10, spec.floorDecades)) lo = hi / Math.pow(10, spec.floorDecades);
+    if (hi / lo < 10) lo = hi / 10;
+  } else {
+    if (lo === undefined) { lo = Math.min(...fin); if (spec.zero) lo = Math.min(lo, 0); }
+    if (hi === undefined) { hi = Math.max(...fin); if (spec.zero) hi = Math.max(hi, 0); }
+    if (hi === lo) { hi += 1; lo -= spec.zero && lo === 0 ? 0 : 1; }
+    const p = (hi - lo) * (pad === undefined ? 0.06 : pad);
+    if (spec.min === undefined && !(spec.zero && lo === 0)) lo -= p;
+    if (spec.max === undefined) hi += p;
+  }
+  return { lo, hi, log: !!spec.log };
+}
+function plot(el, o) {
+  const W = Math.max(280, el.clientWidth || 600), H = o.height || 260;
+  const m = Object.assign({ l: 48, r: 14, t: 12, b: 32 }, o.margin || {});
+  const iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const allX = [], allY = [];
+  for (const s of o.series || []) for (const p of s.pts) { allX.push(p[0]); allY.push(p[1]); }
+  for (const b of o.bands || []) for (const p of b.pts) { allX.push(p[0]); allY.push(p[1], p[2]); }
+  for (const mk of o.markers || []) { allX.push(mk.x); allY.push(mk.y); }
+  for (const h of o.hlines || []) allY.push(h.v);
+  const ax = axis(o.x || {}, allX, 0), ay = axis(o.y || {}, allY);
+  const sx = (v) => m.l + iw * (ax.log ? (Math.log10(v) - Math.log10(ax.lo)) / (Math.log10(ax.hi) - Math.log10(ax.lo)) : (v - ax.lo) / (ax.hi - ax.lo));
+  const sy = (v) => {
+    if (ay.log) v = Math.max(v, ay.lo);
+    return m.t + ih * (1 - (ay.log ? (Math.log10(v) - Math.log10(ay.lo)) / (Math.log10(ay.hi) - Math.log10(ay.lo)) : (v - ay.lo) / (ay.hi - ay.lo)));
+  };
+  const okY = (v) => v !== null && isFinite(v) && (!ay.log || v > 0);
+  let g = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.aria || "")}">`;
+  const yt = o.y && o.y.ticks ? o.y.ticks : ay.log ? (() => { const a = []; for (let e = Math.round(Math.log10(ay.lo)); e <= Math.round(Math.log10(ay.hi)); e++) a.push(Math.pow(10, e)); return a; })() : niceTicks(ay.lo, ay.hi, Math.max(3, Math.round(ih / 50)));
+  const yf = (o.y && o.y.fmt) || ((v) => (ay.log ? (v >= 0.01 && v <= 1000 ? +v.toPrecision(3) + "" : "1e" + Math.round(Math.log10(v))) : sci(v)));
+  for (const v of yt) {
+    if (v < ay.lo - 1e-12 || v > ay.hi + 1e-12) continue;
+    const y = sy(v);
+    g += `<line x1="${m.l}" x2="${m.l + iw}" y1="${y}" y2="${y}" style="stroke:var(--grid)"/>`;
+    g += `<text x="${m.l - 7}" y="${y + 3.5}" text-anchor="end">${esc(yf(v))}</text>`;
+  }
+  const xt = o.x && o.x.ticks ? o.x.ticks : niceTicks(ax.lo, ax.hi, Math.max(3, Math.floor(iw / 80)));
+  const xf = (o.x && o.x.fmt) || sci;
+  for (const v of xt) {
+    if (v < ax.lo - 1e-12 || v > ax.hi + 1e-12) continue;
+    const x = sx(v);
+    g += `<line x1="${x}" x2="${x}" y1="${m.t + ih}" y2="${m.t + ih + 4}" style="stroke:var(--line)"/>`;
+    g += `<text x="${x}" y="${m.t + ih + 16}" text-anchor="middle">${esc(xf(v))}</text>`;
+  }
+  if (!ay.log && ay.lo < 0 && ay.hi > 0) g += `<line x1="${m.l}" x2="${m.l + iw}" y1="${sy(0)}" y2="${sy(0)}" style="stroke:var(--muted)" stroke-width="1"/>`;
+  g += `<line x1="${m.l}" x2="${m.l + iw}" y1="${m.t + ih}" y2="${m.t + ih}" style="stroke:var(--line)"/>`;
+  if (o.xLabel) g += `<text x="${m.l + iw}" y="${H - 2}" text-anchor="end">${esc(o.xLabel)}</text>`;
+  if (o.yLabel) g += `<text x="${m.l}" y="${m.t - 2}" text-anchor="start" class="lab" style="font-size:10.5px">${esc(o.yLabel)}</text>`;
+  for (const b of o.bands || []) {
+    const pts = b.pts.filter((p) => okY(p[1]) && okY(p[2]));
+    if (pts.length < 2) continue;
+    const d = pts.map((p, i) => `${i ? "L" : "M"}${sx(p[0]).toFixed(1)},${sy(p[2]).toFixed(1)}`).join("") + pts.slice().reverse().map((p) => `L${sx(p[0]).toFixed(1)},${sy(p[1]).toFixed(1)}`).join("") + "Z";
+    g += `<path d="${d}" style="fill:${b.color};opacity:${b.opacity || 0.16}"/>`;
+  }
+  for (const h of o.hlines || []) {
+    if (ay.log ? h.v < ay.lo || h.v > ay.hi : h.v < ay.lo || h.v > ay.hi) continue;
+    const y = sy(h.v);
+    g += `<line x1="${m.l}" x2="${m.l + iw}" y1="${y}" y2="${y}" style="stroke:var(--muted)" stroke-dasharray="5 4"/>`;
+    if (h.label) g += `<text x="${m.l + iw - 4}" y="${y - 5}" text-anchor="end" class="lab">${esc(h.label)}</text>`;
+  }
+  for (const s of o.series || []) {
+    const pts = s.pts.filter((p) => okY(p[1]));
+    if (!pts.length) continue;
+    const d = pts.map((p, i) => `${i ? "L" : "M"}${sx(p[0]).toFixed(1)},${sy(p[1]).toFixed(1)}`).join("");
+    g += `<path d="${d}" fill="none" style="stroke:${s.color}" stroke-width="${s.width || 2}" ${s.dash ? `stroke-dasharray="${s.dash}"` : ""} stroke-linejoin="round" stroke-linecap="round" opacity="${s.dim ? 0.3 : 1}"/>`;
+    if (s.dots) for (const p of pts) g += `<circle cx="${sx(p[0])}" cy="${sy(p[1])}" r="${s.dots}" style="fill:${s.color};stroke:var(--panel)" stroke-width="1.5"/>`;
+    if (s.end) { const p = pts[pts.length - 1]; g += `<circle cx="${sx(p[0])}" cy="${sy(p[1])}" r="3.5" style="fill:${s.color};stroke:var(--panel)" stroke-width="2"/>`; }
+  }
+  for (const vm of o.vmarks || []) {
+    const x = sx(vm.x);
+    g += `<line x1="${x}" x2="${x}" y1="${m.t + ih}" y2="${m.t + ih - 14}" style="stroke:${vm.color}" stroke-width="2"/>`;
+  }
+  for (const mk of o.markers || []) {
+    if (!okY(mk.y)) continue;
+    g += `<circle cx="${sx(mk.x)}" cy="${sy(mk.y)}" r="${mk.r || 4}" style="fill:${mk.color};stroke:var(--panel)" stroke-width="${mk.stroke === undefined ? 1.5 : mk.stroke}" ${mk.opacity ? `opacity="${mk.opacity}"` : ""}/>`;
+    if (mk.label) g += `<text x="${sx(mk.x) + (mk.dx || 7)}" y="${sy(mk.y) + (mk.dy || -7)}" class="lab" ${mk.anchor ? `text-anchor="${mk.anchor}"` : ""}>${esc(mk.label)}</text>`;
+  }
+  g += o.extra ? o.extra(sx, sy, m, iw, ih) : "";
+  g += `<rect class="hov" x="${m.l}" y="${m.t}" width="${iw}" height="${ih}" fill="transparent"/>`;
+  g += `</svg>`;
+  el.innerHTML = g;
+  return { sx, sy, m, iw, ih, ax, ay, W, H };
+}
+function bars(el, o) {
+  // o: {items:[{label, v, color}], height, fmt, zero}
+  const W = Math.max(280, el.clientWidth || 500), H = o.height || 200;
+  const m = { l: 44, r: 8, t: 10, b: o.rotate ? 44 : 30 };
+  const iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const vals = o.items.map((d) => d.v);
+  let lo = Math.min(0, ...vals), hi = Math.max(0, ...vals);
+  if (o.min !== undefined) lo = Math.min(lo, o.min); if (o.max !== undefined) hi = Math.max(hi, o.max);
+  if (hi === lo) hi = lo + 1;
+  const pad = (hi - lo) * 0.06; if (hi > 0) hi += pad; if (lo < 0) lo -= pad;
+  const sy = (v) => m.t + ih * (1 - (v - lo) / (hi - lo));
+  const n = o.items.length, bw = iw / n, gap = Math.min(bw * 0.25, 6);
+  let g = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.aria || "")}">`;
+  for (const v of niceTicks(lo, hi, 4)) { const y = sy(v); g += `<line x1="${m.l}" x2="${m.l + iw}" y1="${y}" y2="${y}" style="stroke:var(--grid)"/><text x="${m.l - 6}" y="${y + 3.5}" text-anchor="end">${esc(sci(v))}</text>`; }
+  g += `<line x1="${m.l}" x2="${m.l + iw}" y1="${sy(0)}" y2="${sy(0)}" style="stroke:var(--muted)"/>`;
+  o.items.forEach((d, i) => {
+    const x = m.l + i * bw + gap / 2, y0 = sy(0), y1 = sy(d.v);
+    g += `<rect x="${x.toFixed(1)}" y="${Math.min(y0, y1).toFixed(1)}" width="${Math.max(1, bw - gap).toFixed(1)}" height="${Math.max(0.5, Math.abs(y1 - y0)).toFixed(1)}" rx="${bw > 10 ? 2 : 0}" style="fill:${d.color}"><title>${esc(d.title || d.label + ": " + sci(d.v))}</title></rect>`;
+    if (d.label && (n <= 12 || i % Math.ceil(n / 12) === 0)) {
+      const cx = m.l + i * bw + bw / 2;
+      g += o.rotate ? `<text x="${cx}" y="${m.t + ih + 12}" text-anchor="end" transform="rotate(-40 ${cx} ${m.t + ih + 12})">${esc(d.label)}</text>` : `<text x="${cx}" y="${m.t + ih + 16}" text-anchor="middle">${esc(d.label)}</text>`;
+    }
+  });
+  if (o.xLabel) g += `<text x="${m.l + iw}" y="${H - 2}" text-anchor="end">${esc(o.xLabel)}</text>`;
+  el.innerHTML = g + `</svg>`;
+}
+const durLabel = (d) => (d < 1 ? d * 12 + "m" : d + "y");
+
+// ---------------- simulator state ----------------
+const st = {
+  cfg: { N: 24, K: 6, sigma2: 0.04, seed: 7 },
+  shock: { kind: "ldi", size: 1 },
+  params: Object.assign({}, S.DEFAULT_PARAMS),
+  eps: Math.pow(10, -1.7), maxRounds: 120, speed: 12,
+  enabled: { A: true, B: true, C: true, D: true },
+  metric: "E", focus: "A", heatView: "level", playing: true,
+  m: null, runs: {},
+};
+const METRICS = {
+  E: { name: "E_pair", title: "Pairwise residual E<sub>pair</sub>(t)", log: true, blurb: "Average size of the trade each pair would still make if it bargained optimally from today's holdings. Zero means pairwise stable.", get: (h) => h.E },
+  R: { name: "Surplus left", title: "Residual pairwise surplus", log: true, blurb: "Average over pairs of g<sub>i</sub> + g<sub>j</sub> at the Nash trade: the utility a pair would still gain by meeting now.", get: (h) => h.R },
+  messages: { name: "Messages", title: "Messages sent", log: false, blurb: "Cumulative communication: a proposal and an answer per attempt, plus the disclosure exchange in D.", get: (h) => h.messages },
+  W: { name: "Welfare", title: "Utilitarian welfare gain ΔW(t)", log: false, blurb: "Σ<sub>i</sub> U<sub>i</sub>(x<sub>i</sub>(t)) − U<sub>i</sub>(x<sup>old</sup><sub>i</sub>) under post-shock preferences. Every executed trade helps both sides, so no curve can fall (Proposition 1).", get: (h) => h.W },
+  minU: { name: "Worst-off", title: "Egalitarian welfare min<sub>i</sub> ū<sub>i</sub>(t)", log: false, blurb: "The lowest normalized utility in the market, U<sub>i</sub>(x<sub>i</sub>) / U<sub>i</sub>(bliss). It is invariant to rescaling any agent's utility.", get: (h) => h.minU },
+  ef: { name: "EF", title: "Envy-free ordered pairs", log: false, pct: true, blurb: "Share of ordered pairs (i, j) in which i weakly prefers its own portfolio to j's.", get: (h) => h.ef },
+  ef1: { name: "EF1", title: "EF1 ordered pairs", log: false, pct: true, blurb: "Share of ordered pairs that are envy-free once a single lot is removed from either portfolio (the goods-and-chores version).", get: (h) => h.ef1 },
+  belief: { name: "Belief error", title: "Belief error in B", log: false, only: "B", blurb: "Mean relative error of every agent's estimate of every counterpart's duration values v<sub>j</sub>. Each accepted or rejected proposal is a halfspace that moves the estimate.", get: (h) => h.belief },
+};
+
+function rebuild() {
+  st.m = S.setup(st.cfg, st.shock.kind, st.shock.size);
+  st.runs = {};
+  for (const r of REG) if (st.enabled[r]) st.runs[r] = S.createRun(st.m, r, st.params);
+  if (!st.runs[st.focus]) st.focus = Object.keys(st.runs)[0];
+  fillPairSelects();
+  fillLabSelects();
+  renderSim();
+  renderSweep();
+}
+const anyRunning = () => Object.values(st.runs).some((r) => r.t < st.maxRounds);
+function stepAll() { for (const r of Object.values(st.runs)) if (r.t < st.maxRounds) S.step(st.m, r); }
+function setPlaying(p) {
+  st.playing = p && anyRunning();
+  $("playBtn").textContent = st.playing ? "Pause" : anyRunning() ? "Play" : "Done";
+  $("playBtn").disabled = !anyRunning();
+}
+let lastTs = 0, acc = 0, simVisible = true;
+function frame(ts) {
+  if (st.playing && simVisible) {
+    if (!lastTs) lastTs = ts;
+    acc += ((ts - lastTs) / 1000) * st.speed; lastTs = ts;
+    let n = Math.min(Math.floor(acc), 3);
+    if (n > 0) { acc -= n; while (n-- > 0 && anyRunning()) stepAll(); renderSim(); }
+    if (!anyRunning()) setPlaying(false);
+  } else lastTs = 0;
+  if (ts_.playing && tsVisible) tsFrame(ts); else ts_.last = 0;
+  requestAnimationFrame(frame);
+}
+
+function bindRange(id, out, apply, show, live) {
+  const el = $(id);
+  const upd = () => { const v = parseFloat(el.value); if (out) $(out).textContent = show ? show(v) : v; return v; };
+  upd();
+  el.addEventListener("input", () => { const v = upd(); if (live) apply(v); });
+  if (!live) el.addEventListener("change", () => { apply(upd()); rebuild(); setPlaying(true); });
+}
+function initSimControls() {
+  bindRange("inN", "outN", (v) => (st.cfg.N = v));
+  bindRange("inS2", "outS2", (v) => (st.cfg.sigma2 = v), (v) => v.toFixed(3));
+  bindRange("inSize", "outSize", (v) => (st.shock.size = v), (v) => v.toFixed(2));
+  bindRange("inEps", "outEps", (v) => { st.eps = Math.pow(10, v); renderSim(); }, (v) => sci(Math.pow(10, v)), true);
+  bindRange("inRounds", "outRounds", (v) => (st.maxRounds = v));
+  bindRange("inSpeed", "outSpeed", (v) => (st.speed = v), (v) => v + " rounds/s", true);
+  bindRange("pMaxProp", "oMaxProp", (v) => (st.params.maxProposals = v));
+  bindRange("pPrior", "oPrior", (v) => (st.params.priorSpread = v), (v) => v.toFixed(2));
+  bindRange("pAssets", "oAssets", (v) => (st.params.llmAssets = v));
+  bindRange("pLot", "oLot", (v) => (st.params.llmLot = v), (v) => v.toFixed(2));
+  bindRange("pNoise", "oNoise", (v) => (st.params.llmNoise = v), (v) => v.toFixed(2));
+  bindRange("pBias", "oBias", (v) => (st.params.llmBias = v), (v) => Math.round(v * 100) + "%");
+  bindRange("pDisc", "oDisc", (v) => (st.params.discloseNoise = v), (v) => v.toFixed(2));
+  $("inSeed").addEventListener("change", (e) => { st.cfg.seed = Math.max(1, parseInt(e.target.value) || 1); rebuild(); setPlaying(true); });
+  segBind("inK", (v) => { st.cfg.K = +v; rebuild(); setPlaying(true); });
+  const sel = $("inShock");
+  sel.innerHTML = Object.entries(S.SHOCKS).map(([k, v]) => `<option value="${k}">${esc(v.label)}</option>`).join("");
+  sel.value = st.shock.kind;
+  const showDetail = () => ($("shockDetail").textContent = S.SHOCKS[st.shock.kind].detail);
+  showDetail();
+  sel.addEventListener("change", () => { st.shock.kind = sel.value; showDetail(); rebuild(); setPlaying(true); });
+  $("playBtn").addEventListener("click", () => setPlaying(!st.playing));
+  $("stepBtn").addEventListener("click", () => { if (anyRunning()) { stepAll(); renderSim(); } setPlaying(false); });
+  $("resetBtn").addEventListener("click", () => { rebuild(); setPlaying(true); });
+  const tg = $("regToggles");
+  tg.innerHTML = REG.map((r) => `<label><input type="checkbox" data-r="${r}" checked><span class="swatch" style="background:var(--r${r})"></span><b>${r}</b><span class="muted">${r === "A" || r === "C" ? "full" : "private"}</span></label>`).join("");
+  tg.addEventListener("change", (e) => {
+    const r = e.target.dataset.r; if (!r) return;
+    st.enabled[r] = e.target.checked;
+    if (!REG.some((k) => st.enabled[k])) { st.enabled[r] = true; e.target.checked = true; return; }
+    rebuild(); setPlaying(true);
+  });
+  const ms = $("metricSeg");
+  ms.innerHTML = Object.entries(METRICS).map(([k, v]) => `<button type="button" data-v="${k}" aria-pressed="${k === st.metric}">${v.name}</button>`).join("");
+  segBind("metricSeg", (v) => { st.metric = v; renderSim(); });
+  segBind("heatSeg", (v) => { st.heatView = v; renderSim(); });
+}
+function segBind(id, fn) {
+  const seg = $(id);
+  seg.addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    for (const x of seg.querySelectorAll("button")) x.setAttribute("aria-pressed", x === b ? "true" : "false");
+    fn(b.dataset.v);
+  });
+}
+
+// ---------------- simulator rendering ----------------
+let mainScale = null;
+function renderSim() {
+  const runs = st.runs, t = Math.max(...Object.values(runs).map((r) => r.t));
+  $("clockT").textContent = t; $("clockMax").textContent = st.maxRounds;
+  const M = METRICS[st.metric];
+  $("metricTitle").innerHTML = M.title; $("metricBlurb").innerHTML = M.blurb;
+  const series = [], vmarks = [];
+  for (const r of REG) {
+    const run = runs[r]; if (!run || (M.only && M.only !== r)) continue;
+    series.push({ pts: run.history.map((h) => [h.t, M.get(h)]), color: `var(--r${r})`, width: r === st.focus ? 2.6 : 1.8, end: true });
+    if (st.metric === "E") { const T = S.epsTime(run, st.eps); if (T !== null) vmarks.push({ x: T, color: `var(--r${r})` }); }
+  }
+  $("mainLegend").innerHTML = REG.filter((r) => runs[r] && (!M.only || M.only === r)).map((r) => `<span><span class="swatch" style="background:var(--r${r})"></span>${r} · ${REG_NAME[r]}</span>`).join("") + (st.metric === "E" ? `<span><span class="swatch dash" style="color:var(--muted)"></span>ε</span>` : "");
+  const el = $("mainChart");
+  mainScale = plot(el, {
+    height: 300, series, vmarks,
+    x: { min: 0, max: st.maxRounds }, y: M.log ? { log: true, floorDecades: 7 } : { zero: true },
+    hlines: st.metric === "E" ? [{ v: st.eps, label: "ε = " + sci(st.eps) }] : [],
+    xLabel: "rounds after the shock", aria: M.name + " by round for each regime",
+    ...(M.pct ? { y: { fmt: (v) => Math.round(v * 100) + "%" } } : {}),
+  });
+  renderTable(); renderFair(); renderHeat(); renderGains(); renderPair(); renderLabPairInfo();
+}
+function attachMainTip() {
+  const el = $("mainChart");
+  let tip = null;
+  el.addEventListener("mousemove", (e) => {
+    if (!mainScale) return;
+    const svg = el.querySelector("svg"); if (!svg) return;
+    const rect = svg.getBoundingClientRect(), k = mainScale.W / rect.width;
+    const px = (e.clientX - rect.left) * k;
+    const t = Math.round(((px - mainScale.m.l) / mainScale.iw) * st.maxRounds);
+    if (t < 0 || t > st.maxRounds) { if (tip) tip.hidden = true; return; }
+    const M = METRICS[st.metric];
+    const rows = REG.filter((r) => st.runs[r] && (!M.only || M.only === r)).map((r) => { const h = st.runs[r].history[t]; return h ? `<div class="r"><span><span class="swatch" style="background:var(--r${r})"></span>${r}</span><span class="num">${M.pct ? fx(100 * M.get(h), 1) + "%" : sci(M.get(h))}</span></div>` : ""; }).join("");
+    if (!rows) { if (tip) tip.hidden = true; return; }
+    if (!tip) { tip = document.createElement("div"); tip.className = "tip"; el.appendChild(tip); }
+    tip.hidden = false;
+    tip.innerHTML = `<div class="t">round ${t}</div>${rows}`;
+    const x = (e.clientX - el.getBoundingClientRect().left);
+    tip.style.left = Math.min(x + 14, el.clientWidth - 190) + "px"; tip.style.top = "8px";
+  });
+  el.addEventListener("mouseleave", () => { if (tip) tip.hidden = true; });
+}
+function renderTable() {
+  const m = st.m;
+  const head = `<thead><tr><th>Regime</th><th>T<sub>ε</sub></th><th>E<sub>pair</sub> now</th><th>Surplus left</th><th>Trades</th><th>Proposals</th><th>Rejected</th><th>Messages</th><th>Gains to hit agents</th></tr></thead>`;
+  const body = REG.filter((r) => st.runs[r]).map((r) => {
+    const run = st.runs[r], h = run.history[run.history.length - 1], T = S.epsTime(run, st.eps);
+    const g = S.gainsSince(m, run); let gh = 0, gt = 0; g.forEach((v, i) => { gt += v; if (m.hit[i]) gh += v; });
+    return `<tr data-r="${r}" class="${r === st.focus ? "focus" : ""}"><td><span class="swatch" style="background:var(--r${r});margin-right:6px;vertical-align:middle"></span><b>${r}</b> <span class="muted">${REG_NAME[r]}</span></td>
+      <td class="num">${T !== null ? `<span class="pill ok">${T}</span>` : `<span class="pill wait">${run.t >= st.maxRounds ? "not reached" : "running"}</span>`}</td>
+      <td class="num">${sci(h.E)}</td><td class="num">${sci(h.R)}</td><td class="num">${run.trades}</td><td class="num">${run.proposals}</td>
+      <td class="num">${run.proposals ? Math.round((100 * run.rejects) / run.proposals) + "%" : "—"}</td><td class="num">${run.messages}</td>
+      <td class="num">${gt > 0 ? Math.round((100 * gh) / gt) + "%" : "—"}</td></tr>`;
+  }).join("");
+  $("sumTable").innerHTML = head + `<tbody class="click">${body}</tbody>`;
+}
+function renderFair() {
+  const m = st.m, pc = (v) => (v === null || v === undefined ? "—" : fx(100 * v, 1) + "%");
+  const head = `<thead><tr><th>Allocation</th><th>ΔW</th><th>Mean ū</th><th>Min ū</th><th>Gini of gains</th><th>EF</th><th>EF1</th><th>PROP</th><th>PROP1</th><th>Max envy</th><th>Nash eff. η</th><th>Proposer share</th></tr></thead>`;
+  const row = (label, f, extra, cls) => `<tr ${cls || ""}><td>${label}</td><td class="num">${sci(f.W)}</td><td class="num">${fx(f.meanU, 3)}</td><td class="num">${fx(f.minU, 3)}</td><td class="num">${fx(f.gini, 2)}</td><td class="num">${pc(f.ef)}</td><td class="num">${pc(f.ef1)}</td><td class="num">${pc(f.prop)}</td><td class="num">${pc(f.prop1)}</td><td class="num">${fx(f.maxEnvy, 3)}</td><td class="num">${extra ? fx(extra.eff, 3) : "—"}</td><td class="num">${extra ? pc(extra.share) : "—"}</td></tr>`;
+  const body = row(`<span class="muted">x<sup>old</sup>, right after the shock</span>`, m.ref) + REG.filter((r) => st.runs[r]).map((r) => {
+    const h = st.runs[r].history[st.runs[r].history.length - 1];
+    return row(`<span class="swatch" style="background:var(--r${r});margin-right:6px;vertical-align:middle"></span><b>${r}</b> <span class="muted">${REG_NAME[r]}</span>`, h, h.eff === null ? null : h, `data-r="${r}" class="${r === st.focus ? "focus" : ""}"`);
+  }).join("");
+  $("fairTable").innerHTML = head + `<tbody class="click">${body}</tbody>`;
+}
+
+// ---------------- theory checks ----------------
+const SW_E = [0.001, 0.002, 0.004, 0.008, 0.016, 0.032, 0.064];
+function lsSlope(pts) {
+  const p = pts.filter((q) => q[1] > 0).map((q) => [Math.log(q[0]), Math.log(q[1])]);
+  if (p.length < 2) return null;
+  const mx = p.reduce((a, q) => a + q[0], 0) / p.length, my = p.reduce((a, q) => a + q[1], 0) / p.length;
+  let num = 0, den = 0; for (const q of p) { num += (q[0] - mx) * (q[1] - my); den += (q[0] - mx) ** 2; }
+  return num / den;
+}
+function renderSweep() {
+  const m = st.m, r = S.beliefSweep(m, m.xOld, SW_E, 4);
+  const top = "var(--ink)", all = "var(--rB)";
+  $("swLegend").innerHTML = `<span><span class="swatch" style="background:${top};height:3px"></span>Largest-surplus quartile of pairs</span><span><span class="swatch" style="background:${all}"></span>All ${r.pairs} pairs with an improving trade</span>`;
+  const guide = (key, slope) => { const p0 = r.top.find((o) => o[key] > 0); if (!p0) return []; return SW_E.map((e) => [e, p0[key] * Math.pow(e / p0.e, slope)]); };
+  const draw = (el, key, slope, aria) => plot($(el), {
+    height: 230, margin: { l: 52 },
+    series: [
+      { pts: guide(key, slope), color: "var(--muted)", width: 1.2, dash: "2 4" },
+      { pts: r.all.map((o) => [o.e, o[key]]), color: all, width: 2, dots: 3 },
+      { pts: r.top.map((o) => [o.e, o[key]]), color: top, width: 2.4, dots: 3 },
+    ],
+    x: { log: true, min: SW_E[0] * 0.8, max: SW_E[SW_E.length - 1] * 1.25, ticks: SW_E, fmt: (v) => String(v) }, y: { log: true },
+    xLabel: "belief error e", aria,
+  });
+  draw("swLoss", "loss", 2, "Nash-product loss against belief error");
+  draw("swShift", "shift", 1, "Surplus-share shift against belief error");
+  const sl = (g, key) => lsSlope(r[g].slice(0, 3).map((o) => [o.e, o[key]]));
+  const acc = (g, q) => (r[g][q].acc === null ? "—" : Math.round(100 * r[g][q].acc) + "%");
+  $("swKv").innerHTML = [
+    ["Loss slope, top quartile", fx(sl("top", "loss"), 2)],
+    ["Share slope, top quartile", fx(sl("top", "shift"), 2)],
+    ["Loss slope, all pairs", fx(sl("all", "loss"), 2)],
+    ["Share slope, all pairs", fx(sl("all", "shift"), 2)],
+    [`Accepted at e = ${SW_E[0]}, all pairs`, acc("all", 0)],
+    [`Accepted at e = ${SW_E[SW_E.length - 1]}, all pairs`, acc("all", SW_E.length - 1)],
+  ].map(([k, v]) => `<div><span>${k}</span><b>${v}</b></div>`).join("");
+}
+const PL_NOISE = [0, 0.25, 0.5, 1, 2], PL_M = [1, 3, 8], PL_COL = { 1: "var(--t1)", 3: "var(--rB)", 8: "var(--t0)" };
+let plateau = null;
+function runPlateau() {
+  const cfg = Object.assign({}, st.cfg), shock = Object.assign({}, st.shock), base = Object.assign({}, st.params), rounds = 120;
+  const m = S.setup(cfg, shock.kind, shock.size);
+  const a = S.createRun(m, "A", base); for (let t = 0; t < rounds; t++) S.step(m, a);
+  plateau = { A: a.history[a.history.length - 1].E, pts: {}, label: `seed ${cfg.seed}, ${S.SHOCKS[shock.kind].label.toLowerCase()}` };
+  const jobs = []; for (const mp of PL_M) for (const sp of PL_NOISE) jobs.push([mp, sp]);
+  $("plRun").disabled = true;
+  let n = 0;
+  const next = () => {
+    if (n >= jobs.length) { $("plRun").disabled = false; $("plStatus").textContent = `${jobs.length} runs of regime B, ${rounds} rounds each (${plateau.label}).`; renderPlateau(); return; }
+    const [mp, sp] = jobs[n];
+    const run = S.createRun(m, "B", Object.assign({}, base, { maxProposals: mp, priorSpread: sp }));
+    for (let t = 0; t < rounds; t++) S.step(m, run);
+    (plateau.pts[mp] = plateau.pts[mp] || []).push([sp, run.history[run.history.length - 1].E]);
+    n++;
+    $("plProg").style.width = (100 * n) / jobs.length + "%";
+    $("plStatus").textContent = `run ${n} of ${jobs.length}…`;
+    renderPlateau();
+    setTimeout(next, 0);
+  };
+  next();
+}
+function renderPlateau() {
+  if (!plateau) return;
+  $("plLegend").innerHTML = PL_M.map((mp) => `<span><span class="swatch" style="background:${PL_COL[mp]}"></span>B, m = ${mp} proposal${mp > 1 ? "s" : ""} per meeting</span>`).join("") + `<span><span class="swatch dash" style="color:var(--rA)"></span>A, full information</span>`;
+  plot($("plChart"), {
+    height: 260, margin: { l: 52 },
+    series: PL_M.filter((mp) => plateau.pts[mp]).map((mp) => ({ pts: plateau.pts[mp], color: PL_COL[mp], width: 2.2, dots: 3.5 })),
+    hlines: [{ v: Math.max(plateau.A, 1e-12), label: "A: " + sci(plateau.A) }],
+    x: { min: 0, max: 2, ticks: PL_NOISE }, y: { log: true, floorDecades: 9 },
+    xLabel: "B's prior noise", aria: "Final pairwise residual of regime B against prior noise",
+  });
+}
+
+function renderHeat() {
+  const m = st.m, run = st.runs[st.focus]; if (!run) return;
+  const order = m.agents.map((a, i) => i).sort((a, b) => m.agents[a].dStar - m.agents[b].dStar);
+  const cw = 46, rh = 13, lw = 104, top = 18;
+  const W = lw + cw * m.K + 6, H = top + rh * m.N + 4;
+  const change = st.heatView === "change";
+  let mx = 0;
+  for (const i of order) for (let k = 0; k < m.K; k++) mx = Math.max(mx, Math.abs(change ? run.x[i][k] - m.xOld[i][k] : run.x[i][k]));
+  mx = mx || 1;
+  let g = `<svg viewBox="0 0 ${W} ${H}" width="${W}" style="max-width:100%" role="img" aria-label="Holdings heatmap">`;
+  for (let k = 0; k < m.K; k++) g += `<text x="${lw + k * cw + cw / 2}" y="11" text-anchor="middle">${durLabel(m.d[k])}</text>`;
+  order.forEach((i, r) => {
+    const a = m.agents[i], y = top + r * rh;
+    g += `<circle cx="7" cy="${y + rh / 2}" r="3.5" style="fill:var(${TYPE_VARS[a.typeIdx]})"/>`;
+    if (m.hit[i]) g += `<circle cx="16" cy="${y + rh / 2}" r="2.5" style="fill:var(--shock)"/>`;
+    g += `<text x="24" y="${y + rh / 2 + 3.5}">#${String(i).padStart(2, "0")} d*${a.dStar.toFixed(1).padStart(5, " ")}</text>`;
+    for (let k = 0; k < m.K; k++) {
+      const v = change ? run.x[i][k] - m.xOld[i][k] : run.x[i][k];
+      const f = Math.min(1, Math.abs(v) / mx);
+      const col = change ? (v >= 0 ? "var(--pos)" : "var(--neg)") : "var(--accent)";
+      g += `<rect x="${lw + k * cw + 1}" y="${y + 1}" width="${cw - 2}" height="${rh - 2}" rx="2" style="fill:color-mix(in srgb, ${col} ${Math.round(f * 85 + (f > 0.002 ? 6 : 0))}%, var(--sunk))"><title>agent ${i} (${a.type}), ${durLabel(m.d[k])}: holds ${run.x[i][k].toFixed(3)}, was ${m.xOld[i][k].toFixed(3)}</title></rect>`;
+    }
+  });
+  $("heatChart").innerHTML = g + `</svg>`;
+  $("heatTitle").textContent = `Holdings by duration · regime ${st.focus}`;
+  $("heatSub").textContent = change ? "Change in holdings since the shock. Orange: bought. Blue: sold. Orange dots mark agents hit by the shock." : "Rows are agents sorted by preferred duration d*; columns are instruments. Darker means a larger position. Orange dots mark agents hit by the shock.";
+}
+function renderGains() {
+  const m = st.m, run = st.runs[st.focus]; if (!run) return;
+  const g = S.gainsSince(m, run);
+  const items = g.map((v, i) => ({ i, v })).sort((a, b) => b.v - a.v).map((d) => ({ label: "", v: d.v, color: m.hit[d.i] ? "var(--shock)" : "var(--muted)", title: `agent ${d.i} (${m.agents[d.i].type})${m.hit[d.i] ? ", hit" : ""}: +${sci(d.v)}` }));
+  bars($("gainChart"), { items, height: 210, aria: "Utility gain per agent", xLabel: "agents, sorted by gain" });
+  const hit = g.filter((v, i) => m.hit[i]), not = g.filter((v, i) => !m.hit[i]);
+  const avg = (a) => (a.length ? a.reduce((s, v) => s + v, 0) / a.length : 0);
+  $("gainNote").textContent = `Regime ${st.focus}: hit agents gain ${sci(avg(hit))} on average, others ${sci(avg(not))}. Total ${sci(g.reduce((s, v) => s + v, 0))}.`;
+}
+
+// ---------------- pair solver demo ----------------
+const agentLabel = (m, i) => `#${String(i).padStart(2, "0")} ${S.TYPES[m.agents[i].typeIdx].name}, d* ${m.agents[i].dStar.toFixed(1)}${m.hit[i] ? " (hit)" : ""}`;
+let pairSel = { i: null, j: null };
+function bestPair() {
+  const m = st.m, x = st.runs[st.focus].x; let best = null;
+  for (let i = 0; i < m.N; i++) for (let j = 0; j < m.N; j++) { if (i === j) continue; const s = S.trueNash(m, x, i, j); const v = s.gi + s.gj; if (!best || v > best.v) best = { i, j, v }; }
+  return best;
+}
+function fillPairSelects() {
+  const m = st.m;
+  const opts = m.agents.map((a, i) => `<option value="${i}">${esc(agentLabel(m, i))}</option>`).join("");
+  $("pairI").innerHTML = opts; $("pairJ").innerHTML = opts;
+  const b = bestPair() || { i: 0, j: 1 };
+  pairSel = { i: b.i, j: b.j };
+  $("pairI").value = b.i; $("pairJ").value = b.j;
+}
+function renderPair() {
+  const m = st.m, run = st.runs[st.focus]; if (!run) return;
+  let { i, j } = pairSel;
+  if (i === j) { $("pairNote").textContent = "Pick two different agents."; return; }
+  const x = run.x;
+  const ai = S.marg(m, m.v[i], m.agents[i].lam, x[i], new Array(m.K)), aj = S.marg(m, m.v[j], m.agents[j].lam, x[j], new Array(m.K));
+  const trace = [];
+  const s = S.solvePair(m.K, m.s2, ai, m.agents[i].lam, aj, m.agents[j].lam, x[i], x[j], null, trace);
+  const fr = S.frontier(m.K, m.s2, ai, m.agents[i].lam, aj, m.agents[j].lam, x[i], x[j], 240);
+  $("pairSub").textContent = `Agents from the simulator's market under regime ${st.focus}, at round ${run.t} after the shock.`;
+  const trade = s.gi > 0;
+  $("pairKv").innerHTML = [
+    ["g<sub>i</sub>", sci(s.gi)], ["g<sub>j</sub>", sci(s.gj)], ["Nash product", sci(s.gi * s.gj)], ["r*", trade ? sci(s.r) : "—"], ["‖Δ*‖<sub>2</sub>", sci(Math.hypot(...s.d))], ["Bisection steps", trace.length || "0"],
+  ].map(([k, v]) => `<div><span>${k}</span><b>${v}</b></div>`).join("");
+  $("pairNote").textContent = trade ? "" : "No strictly mutually beneficial trade: this pair is already pairwise stable, so the solver returns Δ* = 0.";
+  // gains along the path Δ(r), sampled around the solution
+  const li = m.agents[i].lam, lj = m.agents[j].lam;
+  const at = (t) => { const r = Math.exp(t); let gi = 0, gj = 0; for (let k = 0; k < m.K; k++) { const dk = Math.min(Math.max((ai[k] - r * aj[k]) / (2 * m.s2[k] * (li + r * lj)), -x[i][k]), x[j][k]); gi += ai[k] * dk - li * m.s2[k] * dk * dk; gj += -aj[k] * dk - lj * m.s2[k] * dk * dk; } return { t, gi, gj, rgj: r * gj }; };
+  const t0 = trade ? Math.log(s.r) : 0;
+  // ends of the bargaining set: g_j = 0 below r*, g_i = 0 above r*
+  const root = (f, lo, hi) => { for (let q = 0; q < 60; q++) { const mid = 0.5 * (lo + hi); if (f(mid)) hi = mid; else lo = mid; } return 0.5 * (lo + hi); };
+  let tLo = t0 - 1, tHi = t0 + 1;
+  if (trade) { tLo = root((t) => at(t).gj >= 0, t0 - 40, t0); tHi = root((t) => at(t).gi <= 0, t0, t0 + 40); }
+  const w = Math.max(tHi - tLo, 0.05), a0 = tLo - 0.35 * w, a1 = tHi + 0.35 * w, span = Math.max(t0 - a0, a1 - t0);
+  const path = []; for (let q = 0; q <= 300; q++) path.push(at(a0 + ((a1 - a0) * q) / 300));
+  const Xmax = Math.max(1e-12, ...path.filter((p) => p.gj >= 0).map((p) => p.gi)), Ymax = Math.max(1e-12, ...path.filter((p) => p.gi >= 0).map((p) => p.gj));
+  const pts = path.filter((p) => p.gi >= -0.15 * Xmax && p.gj >= -0.15 * Ymax).map((p) => [p.gi, p.gj]);
+  const N = s.gi * s.gj;
+  plot($("frontierChart"), {
+    height: 230, margin: { l: 54 },
+    series: [{ pts, color: "var(--ink-2)", width: 2 }],
+    x: { min: -0.15 * Xmax, max: 1.1 * Xmax }, y: { min: -0.15 * Ymax, max: 1.15 * Ymax },
+    markers: trade ? [{ x: s.gi, y: s.gj, color: "var(--accent)", r: 5, label: "Nash" }] : [{ x: 0, y: 0, color: "var(--muted)", r: 4, label: "Δ* = 0" }],
+    extra: trade ? (sx, sy) => {
+      let d = "";
+      for (let q = 0; q <= 80; q++) { const gi = s.gi * 0.25 + ((1.1 * Xmax - s.gi * 0.25) * q) / 80, gj = N / gi; if (gj > 1.15 * Ymax || gi > 1.1 * Xmax) continue; d += `${d ? "L" : "M"}${sx(gi).toFixed(1)},${sy(gj).toFixed(1)}`; }
+      return `<path d="${d}" fill="none" style="stroke:var(--accent)" stroke-dasharray="4 4" stroke-width="1.25" opacity="0.8"/>`;
+    } : null,
+    xLabel: "gain to i", yLabel: "gain to j", aria: "Bargaining frontier",
+  });
+  const top = 1.35 * Math.max(1e-12, ...path.map((p) => p.gi));
+  const keep = (v) => v <= top && v >= -0.25 * top;
+  const L = (t) => t / Math.LN10;
+  const inWin = trace.filter((p) => p.t >= a0 && p.t <= a1);
+  plot($("fChart"), {
+    height: 230, margin: { l: 54 },
+    series: [
+      { pts: path.filter((p) => keep(p.gi)).map((p) => [L(p.t), p.gi]), color: "var(--pos)", width: 2 },
+      { pts: path.filter((p) => keep(p.rgj)).map((p) => [L(p.t), p.rgj]), color: "var(--neg)", width: 2 },
+    ],
+    markers: inWin.map((p, q) => ({ x: L(p.t), y: Math.min(Math.max(p.gi, -0.2 * top), top), color: q === inWin.length - 1 ? "var(--accent)" : "var(--ink)", r: q === inWin.length - 1 ? 4.5 : 2.5, opacity: q === inWin.length - 1 ? 1 : 0.55, stroke: 1 })),
+    x: { min: L(a0), max: L(a1), fmt: (v) => v.toFixed(a1 - a0 < 0.5 ? 3 : 2) }, y: { min: -0.25 * top, max: top },
+    extra: trade ? (sx, sy, mm, iw, ih) => `<line x1="${sx(L(t0))}" x2="${sx(L(t0))}" y1="${mm.t}" y2="${mm.t + ih}" style="stroke:var(--accent)" stroke-dasharray="3 3"/><text x="${sx(L(t0)) + 4}" y="${mm.t + 10}" class="lab">r*</text>` : "",
+    xLabel: "log₁₀ r", aria: "Gains along the bisection path",
+  });
+  bars($("deltaChart"), { items: s.d.map((v, k) => ({ label: durLabel(m.d[k]), v, color: v >= 0 ? "var(--pos)" : "var(--neg)", title: `${durLabel(m.d[k])}: ${v >= 0 ? "i receives " : "i gives "}${Math.abs(v).toFixed(4)}` })), height: 170, min: -0.01, max: 0.01, aria: "Trade per instrument" });
+}
+function initPair() {
+  $("pairI").addEventListener("change", (e) => { pairSel.i = +e.target.value; renderPair(); });
+  $("pairJ").addEventListener("change", (e) => { pairSel.j = +e.target.value; renderPair(); });
+  $("pairBest").addEventListener("click", () => { const b = bestPair(); if (b) { pairSel = { i: b.i, j: b.j }; $("pairI").value = b.i; $("pairJ").value = b.j; renderPair(); } });
+  $("fairTable").addEventListener("click", (e) => { const tr = e.target.closest("tr[data-r]"); if (!tr) return; st.focus = tr.dataset.r; renderSim(); });
+  $("sumTable").addEventListener("click", (e) => { const tr = e.target.closest("tr[data-r]"); if (!tr) return; st.focus = tr.dataset.r; renderSim(); });
+}
+
+// ---------------- negotiation lab (Claude via the sample capability) ----------------
+let samplePromise = null;
+function getSample() {
+  if (!samplePromise) samplePromise = window.claude && window.claude.use ? window.claude.use("sample").catch(() => null) : Promise.resolve(null);
+  return samplePromise;
+}
+const LAB_ERR = {
+  not_granted: "Claude isn't allowed for this page. You can allow it from the page's permissions.",
+  sampling_disabled: "Claude isn't available for this account.",
+  rate_limited: "Too many requests right now. Try again in a minute.",
+  session_expired: "Sign in to Claude again, then retry.",
+  invalid_json: "Claude's answer couldn't be read. Try again.",
+  refused: "Claude declined this request.",
+  cancelled: "Stopped.",
+};
+const labErr = (e) => LAB_ERR[e && e.code] || "Something went wrong talking to Claude. Try again.";
+const lab = { info: "private", tier: "quick", ctl: null, log: [], running: false };
+const instNames = (m) => m.d.map(durLabel);
+function labTradeStr(m, d) {
+  const names = instNames(m);
+  const parts = d.map((v, k) => (Math.abs(v) < 5e-4 ? null : `${v > 0 ? "+" : "−"}${Math.abs(v).toFixed(3)} ${names[k]}`)).filter(Boolean);
+  return parts.length ? parts.join(", ") : "nothing";
+}
+function fillLabSelects() {
+  const m = st.m;
+  const opts = m.agents.map((a, i) => `<option value="${i}">${esc(agentLabel(m, i))}</option>`).join("");
+  $("labI").innerHTML = opts; $("labJ").innerHTML = opts;
+  const b = bestPair() || { i: 0, j: 1 };
+  $("labI").value = b.i; $("labJ").value = b.j;
+  renderLabPairInfo();
+}
+function renderLabPairInfo() {
+  if (!st.m || lab.running || $("labI").value === "") return;
+  const m = st.m, run = st.runs[st.focus], i = +$("labI").value, j = +$("labJ").value;
+  if (!run) return;
+  if (i === j) { $("labPairInfo").textContent = "Pick two different agents."; return; }
+  const r = S.trueNash(m, run.x, i, j);
+  $("labPairInfo").innerHTML = `Holdings come from regime <b>${st.focus}</b> at round ${run.t}. ` + (r.gi > 0 ? `Nash bargain: agent ${i} receives ${esc(labTradeStr(m, r.d))}; total gain ${sci(r.gi + r.gj)}.` : "This pair has no mutually improving trade right now. Pick another pair or restart the market.");
+}
+function agentBrief(m, x, i, label) {
+  const a = m.agents[i], names = instNames(m);
+  const v = m.v[i], mv = S.marg(m, v, a.lam, x[i], new Array(m.K));
+  const tn = S.TYPES[a.typeIdx].name.toLowerCase();
+  return `${label}: agent ${i}, ${/^[aeiou]/.test(tn) ? "an" : "a"} ${tn}${m.hit[i] ? " whose needs just changed in the shock" : ""}.
+  preferred duration d* = ${a.dStar.toFixed(2)} years, tolerance tau = ${a.tau.toFixed(2)}, risk aversion lambda = ${a.lam.toFixed(3)}
+  value per unit v_k: ${names.map((n, k) => `${n} ${v[k].toFixed(4)}`).join(", ")}
+  holdings: ${names.map((n, k) => `${n} ${x[i][k].toFixed(3)}`).join(", ")}
+  marginal value of one more unit right now (v_k - 2 lambda sigma_k^2 x_k): ${names.map((n, k) => `${n} ${mv[k] >= 0 ? "+" : ""}${mv[k].toFixed(4)}`).join(", ")}`;
+}
+function labPrompt(m, x, me, other, turns, k, maxTurns, info, haveTools) {
+  const names = instNames(m);
+  const keys = "{" + names.map((n) => `"${n}": number`).join(", ") + "}";
+  const hist = turns.length ? turns.map((t) => `Agent ${t.speaker}: "${t.message}"${t.action === "propose" ? ` [PROPOSAL: agent ${t.speaker} receives ${labTradeStr(m, t.recv)}]` : t.action === "accept" ? " [ACCEPTS]" : t.action === "reject" ? " [REJECTS]" : t.action === "end" ? " [ENDS]" : ""}`).join("\n") : "(no messages yet; you speak first)";
+  const lastOther = [...turns].reverse().find((t) => t.action === "propose");
+  return `You are role-playing agent ${me}, a financial institution negotiating ONE bilateral trade with agent ${other} in a peer-to-peer bond market. There is no exchange, no public price and no cash: a trade swaps quantities of instruments. You care only about your own utility and accept any trade that strictly raises it.
+
+Instruments, by duration (years) and idiosyncratic payoff variance sigma^2 (risks are independent across instruments): ${names.map((n, kk) => `${n} (sigma^2 = ${m.s2[kk].toFixed(3)})`).join(", ")}.
+Utility: U = sum_k x_k v_k - lambda * sum_k sigma_k^2 x_k^2, where v_k = exp(-(d_k - d*)^2 / (2 tau^2)) is how much the agent values instrument k given its preferred duration d* and tolerance tau. Risk grows with the square of each position, so concentrating in one instrument is costly. For a small trade, your gain is about the sum of (marginal value x units you receive).
+${agentBrief(m, x, me, "You")}
+Counterpart holdings are public: ${names.map((n, kk) => `${n} ${x[other][kk].toFixed(3)}`).join(", ")}.
+${info === "full" ? agentBrief(m, x, other, "Counterpart (you know their true preferences)") : "You do NOT know the counterpart's d*, tau or lambda. Learn about them from what they say and how they respond."}
+Rules: holdings can never go below zero, so you can give at most what you hold and receive at most what the counterpart holds. A trade executes only if both sides agree and it strictly raises both true utilities. Each message is costly; this is message ${k + 1} of at most ${maxTurns}.
+${haveTools ? `Use the evaluate_trade tool to check a candidate trade before proposing or accepting${info === "full" ? " (it reports both sides' utility change)" : " (it reports your own utility change only)"}.` : "You have no calculator; use the marginal values above for small trades."}
+
+Conversation so far:
+${hist}
+
+${lastOther && lastOther.speaker === other ? `The counterpart's latest proposal means YOU would receive ${labTradeStr(m, lastOther.recv.map((v) => -v))}.` : ""}
+Reply with only one JSON object: {"message": "one or two sentences to the counterpart", "action": "propose" | "accept" | "reject" | "end", "trade": ${keys}}
+"trade" is what YOU receive (negative = you give) and is required when action is "propose". "accept" accepts the counterpart's latest proposal exactly as stated. Use "end" to walk away.`;
+}
+function parseTrade(m, t) {
+  if (!t || typeof t !== "object") return null;
+  const d = instNames(m).map((n) => { const v = Number(t[n]); return isFinite(v) ? v : 0; });
+  return d.some((v) => Math.abs(v) > 1e-9) ? d : null;
+}
+function labFeasible(m, x, i, j, dI) { return dI.every((v, k) => x[i][k] + v >= -1e-9 && x[j][k] - v >= -1e-9); }
+function addBubble(html, right) {
+  const tr = $("labTranscript"); const empty = tr.querySelector(".empty"); if (empty) empty.remove();
+  const div = document.createElement("div"); div.className = "bubble" + (right ? " right" : ""); div.innerHTML = html; tr.appendChild(div); tr.scrollTop = tr.scrollHeight; return div;
+}
+const whoHtml = (m, a, action) => `<div class="who"><span class="dot" style="background:var(${TYPE_VARS[m.agents[a].typeIdx]})"></span>Agent ${a} · ${esc(S.TYPES[m.agents[a].typeIdx].name)}${action ? ` · <b>${action}</b>` : ""}</div>`;
+async function runLab() {
+  const m = st.m, run = st.runs[st.focus], i = +$("labI").value, j = +$("labJ").value;
+  if (i === j) { $("labStatus").textContent = "Pick two different agents."; return; }
+  const sample = await getSample();
+  if (!sample) { $("labStatus").textContent = "Claude isn't available in this view. Open the published page on claude.ai to run negotiations."; return; }
+  const x = run.x.map((r) => r.slice());
+  const info = lab.info, tier = lab.tier, maxTurns = +$("labTurns").value;
+  const limits = await sample.limits().catch(() => null);
+  const haveTools = !!(limits && limits.tools);
+  $("labTranscript").innerHTML = ""; $("labResult").innerHTML = "";
+  $("labRun").disabled = true; $("labStop").disabled = false; lab.running = true;
+  const turns = []; let deal = null, toolCalls = 0, ended = "limit";
+  const ctx = { regime: st.focus, t: run.t };
+  try {
+    for (let k = 0; k < maxTurns; k++) {
+      const me = k % 2 === 0 ? i : j, other = me === i ? j : i;
+      $("labStatus").textContent = `Agent ${me} is thinking…`;
+      const bubble = addBubble(whoHtml(m, me) + `<div class="muted">Thinking…</div>`, me === j);
+      const checks = [];
+      const names = instNames(m);
+      const tools = haveTools ? [{
+        name: "evaluate_trade",
+        description: info === "full" ? "Evaluate a candidate trade. Input: units YOU receive per instrument (negative = give). Returns whether it is feasible and the change in your utility and in the counterpart's utility." : "Evaluate a candidate trade. Input: units YOU receive per instrument (negative = give). Returns whether it is feasible and the change in YOUR utility only.",
+        inputSchema: { type: "object", properties: Object.fromEntries(names.map((n) => [n, { type: "number" }])) },
+        execute: (inp) => {
+          toolCalls++;
+          const recv = names.map((n) => Number(inp[n]) || 0);
+          const dI = me === i ? recv : recv.map((v) => -v);
+          const feasible = labFeasible(m, x, i, j, dI);
+          const [gi, gj] = S.trueGains(m, x, i, j, dI);
+          const mine = me === i ? gi : gj, theirs = me === i ? gj : gi;
+          checks.push(mine);
+          const out = { feasible, your_utility_change: +mine.toFixed(6) };
+          if (info === "full") out.counterpart_utility_change = +theirs.toFixed(6);
+          return out;
+        },
+      }] : undefined;
+      lab.ctl = new AbortController();
+      const opts = { modelTier: tier, signal: lab.ctl.signal };
+      if (tools) opts.tools = tools; else opts.cache = false;
+      const out = await sample.json(labPrompt(m, x, me, other, turns, k, maxTurns, info, haveTools), opts);
+      const action = ["propose", "accept", "reject", "end"].includes(out && out.action) ? out.action : "reject";
+      const recv = action === "propose" ? parseTrade(m, out.trade) : null;
+      const turn = { speaker: me, message: String((out && out.message) || "").slice(0, 600), action: recv || action !== "propose" ? action : "reject", recv };
+      turns.push(turn);
+      bubble.innerHTML = whoHtml(m, me, turn.action) + esc(turn.message)
+        + (recv ? `<div class="offer">receives ${esc(labTradeStr(m, recv))}</div>` : "")
+        + (checks.length ? `<div class="tools">checked ${checks.length} trade${checks.length > 1 ? "s" : ""} with the calculator</div>` : "");
+      if (turn.action === "accept") {
+        const prev = turns.slice(0, -1).reverse().find((t) => t.action === "propose");
+        if (prev && prev.speaker === other) { deal = prev.speaker === i ? prev.recv : prev.recv.map((v) => -v); ended = "agreed"; break; }
+      }
+      if (turn.action === "end") { ended = "walked"; break; }
+    }
+    $("labStatus").textContent = ended === "agreed" ? "The agents agreed on a trade." : ended === "walked" ? "One side walked away." : "Message limit reached without a deal.";
+  } catch (e) {
+    $("labStatus").textContent = labErr(e);
+    if (e && e.code === "cancelled") ended = "stopped";
+  } finally {
+    $("labRun").disabled = false; $("labStop").disabled = true; lab.ctl = null; lab.running = false;
+  }
+  scoreLab(m, x, i, j, deal, turns, toolCalls, info, ended, ctx);
+}
+function scoreLab(m, x, i, j, deal, turns, toolCalls, info, ended, ctx) {
+  const nash = S.trueNash(m, x, i, j);
+  const nashS = nash.gi > 0 ? nash.gi + nash.gj : 0;
+  let html = "";
+  const row = { ctx, i, j, info, messages: turns.length, toolCalls, ended };
+  if (deal) {
+    const feasible = labFeasible(m, x, i, j, deal);
+    const [gi, gj] = S.trueGains(m, x, i, j, deal);
+    const ok = feasible && gi > 1e-12 && gj > 1e-12;
+    const captured = ok && nashS > 0 ? (gi + gj) / nashS : null;
+    Object.assign(row, { gi, gj, ok, captured, share: ok ? gi / (gi + gj) : null });
+    html = `<div class="result"><h3>${ok ? "The deal would execute" : "The deal would be blocked"}</h3>
+      ${ok ? "" : `<div class="callout">${!feasible ? "It is infeasible: someone's holdings would go negative." : "It does not strictly improve both true utilities, so the market rules reject it."}</div>`}
+      <div class="kv">
+        <div><span>Agent ${i} receives</span><b>${esc(labTradeStr(m, deal))}</b></div>
+        <div><span>Gain, agent ${i}</span><b>${sci(gi)}</b></div>
+        <div><span>Gain, agent ${j}</span><b>${sci(gj)}</b></div>
+        <div><span>Share of Nash surplus</span><b>${captured === null ? "—" : Math.round(captured * 100) + "%"}</b></div>
+        <div><span>First speaker's share</span><b>${row.share === null ? "—" : Math.round(row.share * 100) + "%"}</b></div>
+        <div><span>Messages · calculator calls</span><b>${turns.length} · ${toolCalls}</b></div>
+      </div>
+      <p class="note">Nash benchmark (cell A): agent ${i} receives ${nashS ? esc(labTradeStr(m, nash.d)) : "nothing"}, gains ${nashS ? sci(nash.gi) + " / " + sci(nash.gj) : "—"}.</p></div>`;
+  } else {
+    html = `<div class="result"><h3>No deal</h3><p class="muted">${ended === "stopped" ? "Stopped before a deal" : "The agents did not agree"}${nashS ? `, leaving ${sci(nashS)} of surplus on the table (the Nash bargain has agent ${i} receive ${esc(labTradeStr(m, nash.d))}).` : ". There was no mutually improving trade to find."}</p></div>`;
+  }
+  $("labResult").innerHTML = html;
+  lab.log.unshift(row);
+  $("labLogWrap").hidden = false;
+  $("labLog").innerHTML = `<thead><tr><th>Market</th><th>Pair</th><th>Info</th><th>Outcome</th><th>Nash surplus captured</th><th>First speaker's share</th><th>Messages</th></tr></thead><tbody>${lab.log.map((r) => `<tr><td>${r.ctx.regime} · t=${r.ctx.t}</td><td class="num">${r.i} → ${r.j}</td><td>${r.info === "full" ? "Full (C)" : "Private (D)"}</td><td>${r.ok ? "Executed" : r.gi !== undefined ? "Blocked" : r.ended === "walked" ? "Walked away" : r.ended === "stopped" ? "Stopped" : "No deal"}</td><td class="num">${r.captured != null ? Math.round(r.captured * 100) + "%" : "—"}</td><td class="num">${r.share != null ? Math.round(r.share * 100) + "%" : "—"}</td><td class="num">${r.messages}</td></tr>`).join("")}</tbody>`;
+}
+function initLab() {
+  segBind("labInfo", (v) => (lab.info = v));
+  segBind("labTier", (v) => (lab.tier = v));
+  $("labTurns").addEventListener("input", () => ($("oTurns").textContent = $("labTurns").value));
+  $("labI").addEventListener("change", renderLabPairInfo);
+  $("labJ").addEventListener("change", renderLabPairInfo);
+  $("labSuggest").addEventListener("click", () => { const b = bestPair(); if (b) { $("labI").value = b.i; $("labJ").value = b.j; } renderLabPairInfo(); });
+  $("labStop").addEventListener("click", () => lab.ctl && lab.ctl.abort());
+  $("labRun").addEventListener("click", runLab);
+  getSample().then((s) => { if (!s) $("labStatus").textContent = "Claude isn't available in this view. Open the published page on claude.ai to run negotiations."; });
+}
+
+// ---------------- preference explorer ----------------
+const PF_D = S.DURATION_SETS[8];
+const pf = { d: 8, tau: 3.5, lam: 1, s2: 0.04 };
+function initPref() {
+  const seg = $("prefType");
+  seg.innerHTML = S.TYPES.map((t, q) => `<button type="button" data-v="${q}" aria-pressed="${q === 2}"><span class="dot" style="background:var(${TYPE_VARS[q]});margin-right:5px;width:7px;height:7px"></span>${t.name}</button>`).join("");
+  segBind("prefType", (v) => {
+    const t = S.TYPES[+v];
+    pf.d = (t.d[0] + t.d[1]) / 2; pf.tau = (t.tau[0] + t.tau[1]) / 2; pf.lam = (t.lam[0] + t.lam[1]) / 2;
+    $("pfD").value = pf.d; $("pfT").value = pf.tau; $("pfL").value = pf.lam; syncPfOut(); renderPref();
+  });
+  const bind = (id, key) => $(id).addEventListener("input", (e) => { pf[key] = +e.target.value; syncPfOut(); renderPref(); });
+  bind("pfD", "d"); bind("pfT", "tau"); bind("pfL", "lam"); bind("pfS", "s2");
+  syncPfOut();
+}
+function syncPfOut() { $("pfDo").textContent = pf.d.toFixed(2) + " y"; $("pfTo").textContent = pf.tau.toFixed(2); $("pfLo").textContent = pf.lam.toFixed(2); $("pfSo").textContent = pf.s2.toFixed(3); }
+function renderPref() {
+  const curve = []; for (let q = 0; q <= 120; q++) { const d = (30 * q) / 120; curve.push([d, Math.exp(-((d - pf.d) ** 2) / (2 * pf.tau * pf.tau))]); }
+  const v = S.valueVec(PF_D, pf.d, pf.tau);
+  plot($("pfCurve"), {
+    height: 220, series: [{ pts: curve, color: "var(--accent)", width: 2.2 }],
+    markers: PF_D.map((d, k) => ({ x: d, y: v[k], color: "var(--ink)", r: 3.5 })),
+    x: { min: 0, max: 30, ticks: [0, 5, 10, 15, 20, 25, 30], fmt: (z) => z + "y" }, y: { min: 0, max: 1.05, ticks: [0, 0.25, 0.5, 0.75, 1] },
+    extra: (sx, sy, m, iw, ih) => `<line x1="${sx(pf.d)}" x2="${sx(pf.d)}" y1="${m.t}" y2="${m.t + ih}" style="stroke:var(--muted)" stroke-dasharray="3 3"/><text x="${sx(pf.d) + 4}" y="${m.t + 10}" class="lab">d*</text>`,
+    xLabel: "duration", aria: "Duration value curve",
+  });
+  const ideal = v.map((z) => z / (2 * pf.lam * pf.s2));
+  bars($("pfBars"), { items: PF_D.map((d, k) => ({ label: durLabel(d), v: ideal[k], color: "var(--accent)" })), height: 220, aria: "Ideal holdings" });
+  const tot = ideal.reduce((s, z) => s + z, 0), best = ideal.indexOf(Math.max(...ideal));
+  $("pfNote").textContent = `Largest ideal position: ${durLabel(PF_D[best])}, ${Math.round((100 * ideal[best]) / tot)}% of the ideal portfolio. Raising λ or σ² shrinks every position by the same factor; τ sets how many neighbours share the weight.`;
+}
+
+// ---------------- hero figure ----------------
+function renderHero() {
+  const cfg = { N: 24, K: 6, sigma2: 0.04, seed: 7 }, rounds = 100, eps = Math.pow(10, -1.7);
+  const m = S.setup(cfg, "ldi", 1);
+  const runs = REG.map((r) => { const run = S.createRun(m, r, {}); for (let t = 0; t < rounds; t++) S.step(m, run); return run; });
+  const vm = [], series = runs.map((run) => {
+    const T = S.epsTime(run, eps); if (T !== null) vm.push({ x: T, color: `var(--r${run.regime})` });
+    return { pts: run.history.map((h) => [h.t, h.E]), color: `var(--r${run.regime})`, width: 2.2, end: true };
+  });
+  hero = { series, vm, eps, rounds, runs };
+  $("heroLegend").innerHTML = REG.map((r) => `<span><span class="swatch" style="background:var(--r${r})"></span>${r} · ${REG_NAME[r]}</span>`).join("");
+  drawHero();
+}
+let hero = null;
+function drawHero() {
+  if (!hero) return;
+  plot($("heroChart"), { height: 250, series: hero.series, vmarks: hero.vm, x: { min: 0, max: hero.rounds }, y: { log: true, floorDecades: 6 }, hlines: [{ v: hero.eps, label: "ε" }], xLabel: "rounds after the shock", aria: "E_pair after the shock for regimes A to D" });
+  const tA = S.epsTime(hero.runs[0], hero.eps);
+  const notReached = hero.runs.filter((r) => S.epsTime(r, hero.eps) === null).map((r) => r.regime);
+  $("heroCap").innerHTML = `<b>Figure 1, computed in your browser.</b> Pairwise residual E<sub>pair</sub>(t) after the shock, log scale. 24 agents trade six instruments; insurers' preferred duration moves out by 2.5 years. The solver with full information (A) reaches ε = ${sci(hero.eps)} in ${tA} rounds${notReached.length ? `; ${notReached.length > 1 ? notReached.slice(0, -1).join(", ") + " and " + notReached[notReached.length - 1] + " do" : notReached[0] + " does"} not reach it within ${hero.rounds} rounds` : ""}. Ticks on the axis mark T<sub>ε</sub>.`;
+}
+
+// ---------------- batch ----------------
+let batch = null;
+function initBatch() {
+  bindRange("bSeeds", "oSeeds", () => {}, null, true);
+  $("plRun").addEventListener("click", runPlateau);
+  $("bRun").addEventListener("click", runBatch);
+}
+function runBatch() {
+  const nSeeds = +$("bSeeds").value, regs = REG.filter((r) => st.enabled[r]);
+  const cfg0 = Object.assign({}, st.cfg), shock = Object.assign({}, st.shock), params = Object.assign({}, st.params), eps = st.eps, rounds = st.maxRounds;
+  batch = { rows: [], regs, rounds, eps };
+  $("bRun").disabled = true;
+  let s = 0;
+  const next = () => {
+    if (s >= nSeeds) { $("bRun").disabled = false; $("bStatus").textContent = `${nSeeds} seeds × ${regs.length} regimes, ${rounds} rounds each.`; renderBatch(); return; }
+    const seed = cfg0.seed + 1000 + s;
+    const m = S.setup(Object.assign({}, cfg0, { seed }), shock.kind, shock.size);
+    for (const r of regs) {
+      const run = S.createRun(m, r, params);
+      let T = null;
+      for (let t = 0; t < rounds; t++) { S.step(m, run); if (run.history[run.history.length - 1].E <= eps) { T = run.t; break; } }
+      batch.rows.push({ seed, r, T, messages: run.messages });
+    }
+    s++;
+    $("bProg").style.width = (100 * s) / nSeeds + "%";
+    $("bStatus").textContent = `seed ${s} of ${nSeeds}…`;
+    renderBatch();
+    setTimeout(next, 0);
+  };
+  next();
+}
+function median(a) { if (!a.length) return null; const b = a.slice().sort((x, y) => x - y); const h = b.length >> 1; return b.length % 2 ? b[h] : (b[h - 1] + b[h]) / 2; }
+function renderBatch() {
+  if (!batch) { $("bChart").innerHTML = `<p class="note">Run a batch to compare T<sub>ε</sub> across seeds.</p>`; return; }
+  const el = $("bChart"), W = Math.max(300, el.clientWidth), rowH = 34, m = { l: 40, r: 70, t: 8, b: 28 };
+  const H = m.t + m.b + rowH * batch.regs.length, iw = W - m.l - m.r;
+  const sx = (v) => m.l + (iw * v) / batch.rounds;
+  let g = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="T epsilon by seed">`;
+  for (const v of niceTicks(0, batch.rounds, Math.max(3, Math.floor(iw / 80)))) g += `<line x1="${sx(v)}" x2="${sx(v)}" y1="${m.t}" y2="${H - m.b}" style="stroke:var(--grid)"/><text x="${sx(v)}" y="${H - m.b + 15}" text-anchor="middle">${v}</text>`;
+  g += `<text x="${W - m.r + 8}" y="${H - m.b + 15}">not reached</text><text x="${m.l + iw}" y="${H - 1}" text-anchor="end">T_ε (rounds)</text>`;
+  batch.regs.forEach((r, q) => {
+    const y = m.t + q * rowH + rowH / 2, rows = batch.rows.filter((z) => z.r === r);
+    g += `<text x="${m.l - 10}" y="${y + 4}" text-anchor="end" class="lab" style="fill:var(--r${r});font-weight:700">${r}</text><line x1="${m.l}" x2="${m.l + iw}" y1="${y}" y2="${y}" style="stroke:var(--grid)"/>`;
+    let miss = 0;
+    rows.forEach((z, n) => {
+      if (z.T === null) { miss++; return; }
+      const jit = ((n * 7919) % 11) - 5;
+      g += `<circle cx="${sx(z.T)}" cy="${y + jit * 1.4}" r="4" style="fill:var(--r${r})" opacity="0.75"/>`;
+    });
+    const med = median(rows.filter((z) => z.T !== null).map((z) => z.T));
+    if (med !== null) g += `<line x1="${sx(med)}" x2="${sx(med)}" y1="${y - 11}" y2="${y + 11}" style="stroke:var(--ink)" stroke-width="2"/>`;
+    if (miss) g += `<text x="${W - m.r + 8}" y="${y + 4}" style="fill:var(--r${r})">× ${miss}</text>`;
+  });
+  el.innerHTML = g + `</svg>`;
+  $("bTable").innerHTML = `<thead><tr><th>Regime</th><th>Reached ε</th><th>Median T<sub>ε</sub></th><th>Median messages</th></tr></thead><tbody>` + batch.regs.map((r) => {
+    const rows = batch.rows.filter((z) => z.r === r), ok = rows.filter((z) => z.T !== null);
+    return `<tr><td><span class="swatch" style="background:var(--r${r});margin-right:6px;vertical-align:middle"></span><b>${r}</b> <span class="muted">${REG_NAME[r]}</span></td><td class="num">${ok.length} / ${rows.length}</td><td class="num">${ok.length ? median(ok.map((z) => z.T)) : "—"}</td><td class="num">${rows.length ? median(rows.map((z) => z.messages)) : "—"}</td></tr>`;
+  }).join("") + `</tbody>`;
+}
+
+// ---------------- term structure ----------------
+const ts_ = { disc: "treasury", kind: "vol", size: 1, rounds: 60, speed: 6, playing: true, last: 0, acc: 0, bm: null, run: null };
+let tsVisible = true;
+function tsRebuild() {
+  const r = S.setupBonds({ N: 24, seed: 11, discount: ts_.disc }, ts_.kind, ts_.size);
+  ts_.bm = r.bm; ts_.run = r.run;
+  tsRender();
+}
+function tsSetPlaying(p) { ts_.playing = p && ts_.run.t < ts_.rounds; $("tsPlay").textContent = ts_.playing ? "Pause" : ts_.run.t < ts_.rounds ? "Play" : "Done"; $("tsPlay").disabled = ts_.run.t >= ts_.rounds; }
+function tsFrame(ts) {
+  if (!ts_.last) ts_.last = ts;
+  ts_.acc += ((ts - ts_.last) / 1000) * ts_.speed; ts_.last = ts;
+  if (ts_.acc >= 1) { ts_.acc = 0; if (ts_.run.t < ts_.rounds) { S.stepBonds(ts_.bm, ts_.run); tsRender(); } else tsSetPlaying(false); }
+}
+function initTs() {
+  const sel = $("tsShock");
+  sel.innerHTML = Object.entries(S.BOND_SHOCKS).map(([k, v]) => `<option value="${k}">${esc(v.label)}</option>`).join("");
+  sel.value = ts_.kind;
+  const det = () => ($("tsShockDetail").textContent = S.BOND_SHOCKS[ts_.kind].detail);
+  det();
+  sel.addEventListener("change", () => { ts_.kind = sel.value; det(); tsRebuild(); tsSetPlaying(true); });
+  segBind("tsDisc", (v) => { ts_.disc = v; tsRebuild(); tsSetPlaying(true); });
+  const sz = $("tsSize"), szo = () => ($("tsSizeO").textContent = (+sz.value).toFixed(2));
+  szo(); sz.addEventListener("input", szo);
+  sz.addEventListener("change", () => { ts_.size = +sz.value; tsRebuild(); tsSetPlaying(true); });
+  $("tsPlay").addEventListener("click", () => tsSetPlaying(!ts_.playing));
+  $("tsStep").addEventListener("click", () => { if (ts_.run.t < ts_.rounds) { S.stepBonds(ts_.bm, ts_.run); tsRender(); } tsSetPlaying(false); });
+  $("tsReset").addEventListener("click", () => { tsRebuild(); tsSetPlaying(true); });
+}
+function tsRender() {
+  const bm = ts_.bm, run = ts_.run, cur = run.state.curve, pre = bm.preState.curve, sh = bm.shockState.curve;
+  const tsy = ts_.disc === "treasury";
+  $("tsClock").textContent = run.t;
+  const pct = (v) => v * 100;
+  const series = [];
+  if (tsy) series.push({ pts: S.MATURITIES.map((T) => [T, pct(S.treasuryYield(T))]), color: "var(--muted)", width: 1.5, dash: "5 4" });
+  series.push({ pts: pre.map((c) => [c.T, pct(c.y)]), color: "var(--ink-2)", width: 1.5 });
+  series.push({ pts: sh.map((c) => [c.T, pct(c.y)]), color: "var(--shock)", width: 1.5, dash: "2 3" });
+  series.push({ pts: cur.map((c) => [c.T, pct(c.y)]), color: "var(--accent)", width: 2.6, dots: 3.5 });
+  $("tsLegend").innerHTML = (tsy ? `<span><span class="swatch dash" style="color:var(--muted)"></span>Treasury (illustrative)</span>` : "") +
+    `<span><span class="swatch" style="background:var(--ink-2)"></span>Pre-shock equilibrium</span><span><span class="swatch dash" style="color:var(--shock)"></span>Right after the shock</span><span><span class="swatch" style="background:var(--accent);height:4px"></span>Now, round ${run.t}</span><span><span class="swatch" style="background:var(--accent);opacity:0.25;height:10px"></span>Range of holders' private yields</span>`;
+  plot($("tsCurve"), {
+    height: 300, margin: { l: 46 }, series,
+    bands: [{ pts: cur.map((c) => [c.T, pct(c.ylo), pct(c.yhi)]), color: "var(--accent)", opacity: 0.18 }],
+    x: { log: true, min: 0.4, max: 36, ticks: S.MATURITIES, fmt: durLabel }, y: { fmt: (v) => v.toFixed(2) + "%" },
+    xLabel: "maturity (log scale)", aria: "Implied yield curve",
+  });
+  const hist = run.history.map((h) => [h.t, Math.max(h.disp * 1e4, 1e-4)]);
+  plot($("tsDisp"), { height: 200, margin: { l: 44 }, series: [{ pts: hist, color: "var(--accent)", width: 2, end: true }], x: { min: 0, max: ts_.rounds }, y: { log: true, min: 1e-3, fmt: (v) => (v >= 1 ? v + "" : v >= 0.01 ? v + "" : "1e" + Math.round(Math.log10(v))) }, hlines: [{ v: 0.1, label: "0.1 bp" }], xLabel: "rounds", aria: "Yield dispersion by round" });
+  const conv = run.history.find((h) => h.disp * 1e4 < 0.1);
+  const longT = cur.length - 1, d10 = cur.findIndex((c) => c.T === 10);
+  $("tsKv").innerHTML = [
+    ["Dispersion now", fx(run.state.dispersion * 1e4, 2) + " bp"],
+    ["Below 0.1 bp at", conv ? "round " + conv.t : "—"],
+    ["10y move", ((cur[d10].y - pre[d10].y) * 1e4 >= 0 ? "+" : "") + fx((cur[d10].y - pre[d10].y) * 1e4, 1) + " bp"],
+    ["Trades", run.trades],
+  ].map(([k, v]) => `<div><span>${k}</span><b>${v}</b></div>`).join("");
+  const bp = (v) => (v === null ? "—" : fx(v * 1e4, 0));
+  $("tsTable").innerHTML = `<thead><tr><th>Maturity</th>${tsy ? "<th>Treasury</th>" : ""}<th>Pre-shock</th><th>After shock</th><th>Now</th><th>Change (bp)</th>${tsy ? "<th>Credit spread (bp)</th>" : ""}<th>Holder range (bp)</th><th>Holders</th></tr></thead><tbody>` +
+    cur.map((c, k) => `<tr><td class="num">${durLabel(c.T)}</td>${tsy ? `<td class="num">${fx(c.treasury * 100, 2)}%</td>` : ""}<td class="num">${fx(pre[k].y * 100, 2)}%</td><td class="num">${fx(sh[k].y * 100, 2)}%</td><td class="num"><b>${fx(c.y * 100, 2)}%</b></td><td class="num">${(c.y - pre[k].y) >= 0 ? "+" : ""}${bp(c.y - pre[k].y)}</td>${tsy ? `<td class="num">${bp(c.spread)}</td>` : ""}<td class="num">${fx((c.yhi - c.ylo) * 1e4, 1)}</td><td class="num">${c.holders}</td></tr>`).join("") + `</tbody>`;
+  const noTrade = run.trades === 0 && run.t > 2;
+  $("tsSub").textContent = noTrade
+    ? "No trade happens: this shock moves every agent's valuation of a bond by the same amount, so the curve reprices at once and no pair has anything to gain. Try individual discounting or another shock."
+    : `24 agents trade nine zero-coupon bonds, 6 months to 30 years. ${tsy ? "The Treasury curve is an illustrative Nelson–Siegel curve, not market data." : "Each agent discounts at its own rate ρᵢ, so there is no common benchmark and no credit spread."}`;
+}
+
+// ---------------- nav highlight ----------------
+function initNav() {
+  const links = [...document.querySelectorAll("#navLinks a")];
+  const secs = links.map((a) => document.querySelector(a.getAttribute("href")));
+  if (!("IntersectionObserver" in window)) return;
+  const io = new IntersectionObserver((ents) => {
+    for (const e of ents) if (e.isIntersecting) { const q = secs.indexOf(e.target); links.forEach((a, n) => a.classList.toggle("on", n === q)); }
+  }, { rootMargin: "-45% 0px -50% 0px" });
+  secs.forEach((s) => s && io.observe(s));
+  const vis = (el, cb) => new IntersectionObserver((ents) => cb(ents[0].isIntersecting), { rootMargin: "200px 0px" }).observe(el);
+  vis($("simulator"), (v) => (simVisible = v));
+  vis($("term-structure"), (v) => (tsVisible = v));
+}
+
+// ---------------- boot ----------------
+initPref(); renderPref();
+initSimControls(); initPair(); initBatch(); initLab(); attachMainTip();
+initTs();
+rebuild(); setPlaying(true);
+tsRebuild();
+renderBatch();
+initNav();
+requestAnimationFrame(frame);
+setTimeout(renderHero, 30);
+let rz = 0;
+window.addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => { renderPref(); renderSim(); tsRender(); drawHero(); renderBatch(); renderSweep(); renderPlateau(); }, 120); });
+})();
+</script>

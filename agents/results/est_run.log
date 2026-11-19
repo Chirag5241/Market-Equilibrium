@@ -1,0 +1,19 @@
+Market: N 90, seed 7, riskUp (10% hit), 16 rounds. Deployments: gpt-6-luna, gpt-6-luna-2. Cap $10 (already spent $0.0012 on this experiment).
+[particle] F after rounds 1/4/16: 50.67% / 90.72% / 96.32%; proposals 2054, rejected 94%, belief error |log lam| 0.100
+[llmEstimate] round 1: F = 57.74% (true-utility 74.05%), 8 trades from 120 proposals, spent $0.1581
+[llmEstimate] round 2: F = 73.66% (true-utility 91.77%), 12 trades from 111 proposals, spent $0.2982
+[llmEstimate] round 3: F = 88.49% (true-utility 95.82%), 18 trades from 99 proposals, spent $0.4315
+[llmEstimate] round 4: F = 91.18% (true-utility 97.75%), 18 trades from 99 proposals, spent $0.5674
+[llmEstimate] round 5: F = 92.92% (true-utility 98.74%), 21 trades from 95 proposals, spent $0.6929
+[llmEstimate] round 6: F = 94.57% (true-utility 99.55%), 18 trades from 103 proposals, spent $0.8369
+[llmEstimate] round 7: F = 95.91% (true-utility 99.76%), 22 trades from 94 proposals, spent $0.9728
+[llmEstimate] round 8: F = 96.92% (true-utility 99.87%), 21 trades from 97 proposals, spent $1.1065
+[llmEstimate] round 9: F = 97.69% (true-utility 99.95%), 20 trades from 100 proposals, spent $1.2470
+[llmEstimate] round 10: F = 98.39% (true-utility 99.97%), 19 trades from 102 proposals, spent $1.3946
+[llmEstimate] round 11: F = 98.69% (true-utility 99.99%), 18 trades from 103 proposals, spent $1.5394
+[llmEstimate] round 12: F = 98.93% (true-utility 99.99%), 13 trades from 109 proposals, spent $1.6882
+[llmEstimate] round 13: F = 99.35% (true-utility 100.00%), 20 trades from 96 proposals, spent $1.8240
+[llmEstimate] round 14: F = 99.42% (true-utility 100.00%), 13 trades from 111 proposals, spent $1.9852
+[llmEstimate] round 15: F = 99.50% (true-utility 100.00%), 12 trades from 112 proposals, spent $2.1435
+[llmEstimate] round 16: F = 99.55% (true-utility 100.00%), 15 trades from 105 proposals, spent $2.2880
+LLM calls 3096, input tokens 3370151, output tokens 3483803 (reasoning 3258763). Experiment total $2.2880 at $0.11/$0.55 per 1M.

@@ -1,0 +1,19 @@
+# Secrets: never commit
+.env
+**/.env
+
+# Local tooling and OS files
+.DS_Store
+.claude/
+.impeccable/
+**/.impeccable/
+__pycache__/
+node_modules/
+
+# Kept local on purpose (personal notes, slide decks, drafts, older prototypes).
+# Remove a line here to publish it.
+meeting summary/
+*.pdf
+*.pptx
+site/
+llm-vs-solver/
