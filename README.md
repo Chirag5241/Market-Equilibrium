@@ -27,7 +27,10 @@ Then open http://localhost:8000. (Opening `index.html` directly from disk also w
 
 ## Publish with GitHub Pages
 
-The workflow in `.github/workflows/pages.yml` deploys `website/` on every push to `main`. One-time setup: repository **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+Either Pages source works:
+
+- **GitHub Actions** (recommended): Settings → Pages → Source: GitHub Actions. The workflow in `.github/workflows/pages.yml` deploys `website/` on every push to `main`, at https://chirag5241.github.io/Market-Equilibrium/.
+- **Deploy from a branch**: Settings → Pages → Source: Deploy from a branch → `main` / `(root)`. The root `index.html` redirects to `website/`, so the site is at https://chirag5241.github.io/Market-Equilibrium/website/.
 
 ## Re-running the LLM experiments
 
